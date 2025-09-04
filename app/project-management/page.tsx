@@ -75,7 +75,7 @@ export default function ProjectManagementPage() {
 
   return (
     <>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8 px-4">
         {selectedProject ? (
           <ProjectDetailView
             project={selectedProject}

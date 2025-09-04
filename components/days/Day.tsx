@@ -52,16 +52,16 @@ export default function DayComponent({ day, isToday = false }: DayComponentProps
         <AccordionContent className="pt-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Column 1 */}
-            <div className="lg:col-span-1 flex flex-col gap-6">
-              <DayMetrics day={day} />
-              <DayHabits />
-            </div>
             {/* Column 2 */}
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Note />
               <DayReflections day={day} />
               <DayTasks />
               <DayGoals />
+            </div>
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              <DayMetrics day={day} />
+              <DayHabits />
             </div>
           </div>
         </AccordionContent>
