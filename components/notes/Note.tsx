@@ -144,7 +144,7 @@ export default function MultiNoteManager() {
                 <div>
                   <CardTitle>{activeNote.title || "Untitled Note"}</CardTitle>
                   <CardDescription>
-                    Last updated: {activeNote.lastUpdated.toLocaleString()}
+                    <>Last updated: {activeNote.lastUpdated.toLocaleString()}</>
                   </CardDescription>
                 </div>
               )}
