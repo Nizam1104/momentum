@@ -8,7 +8,8 @@ import { ProjectCard } from './ProjectCard';
 import { ProjectDetails } from './ProjectDetails';
 import { ProjectForm } from './ProjectForm';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, LayoutGrid, List, FolderOpen } from 'lucide-react';
+// Import ChevronLeft and ChevronRight for the toggle button
+import { PlusCircle, LayoutGrid, List, FolderOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,12 +17,16 @@ import { calculateProjectProgress, generateId } from './utils';
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+import { Info } from 'lucide-react';
+
 export default function ProjectManagement() {
     const [projects, setProjects] = useState<Project[]>(mockProjects);
     const [tasks, setTasks] = useState<Task[]>(mockTasks);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+    // State to manage sidebar collapse
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     // Memoize projects with updated progress
     const projectsWithProgress = useMemo(() => {
@@ -106,41 +111,64 @@ export default function ProjectManagement() {
     return (
         <div className="flex h-full overflow-hidden bg-background">
             {/* Left Sidebar: Project List */}
-            <div className="w-full md:w-1/3 lg:w-1/4 border-r bg-card/50 p-6 flex flex-col overflow-hidden">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-extrabold flex items-center gap-2">
-                        <FolderOpen className="h-7 w-7 text-primary" /> Projects
-                    </h1>
-                    <Button onClick={() => { setEditingProject(null); setIsProjectFormOpen(true); }}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> New Project
-                    </Button>
+            <div className={`
+                ${isSidebarOpen ? 'w-full md:w-1/3 lg:w-1/3 p-6' : 'w-16 p-4'}
+                border-r bg-card/50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out
+            `}>
+                <div className={`flex items-center justify-between ${isSidebarOpen ? 'mb-6' : 'mb-0'}`}>
+                    {isSidebarOpen ? (
+                        <>
+                            <h1 className="text-xl font-extrabold flex items-center gap-2">
+                                <FolderOpen className="h-7 w-7 text-primary" /> Projects
+                            </h1>
+                            <div className="flex items-center gap-2">
+                                <Button size={'sm'} onClick={() => { setEditingProject(null); setIsProjectFormOpen(true); }}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> New Project
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
+                                    <ChevronLeft className="h-5 w-5" />
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center w-full gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+                                <ChevronRight className="h-5 w-5" />
+                            </Button>
+                            <FolderOpen className="h-7 w-7 text-primary" />
+                        </div>
+                    )}
                 </div>
 
-                <Separator className="mb-6" />
+                {isSidebarOpen && (
+                    <>
+                        <Separator className="mb-6" />
 
-                <ScrollArea className="flex-grow pr-4 -mr-4"> {/* Adjust padding for scrollbar */}
-                    <div className="grid gap-4">
-                        {projectsWithProgress.length > 0 ? (
-                            projectsWithProgress.map(project => (
-                                <ProjectCard
-                                    key={project.id}
-                                    project={project}
-                                    onClick={setSelectedProjectId}
-                                    onEdit={handleEditProjectClick}
-                                    onDelete={handleDeleteProject}
-                                />
-                            ))
-                        ) : (
-                            <Alert>
-                                <Info className="h-4 w-4" />
-                                <AlertTitle>No Projects Found</AlertTitle>
-                                <AlertDescription>
-                                    Start by creating your first project to organize your work.
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
-                </ScrollArea>
+                        <ScrollArea className="flex-grow pr-4 -mr-4"> {/* Adjust padding for scrollbar */}
+                            <div className="grid gap-4">
+                                {projectsWithProgress.length > 0 ? (
+                                    projectsWithProgress.map(project => (
+                                        <ProjectCard
+                                            key={project.id}
+                                            project={project}
+                                            onClick={setSelectedProjectId}
+                                            onEdit={handleEditProjectClick}
+                                            onDelete={handleDeleteProject}
+                                        />
+                                    ))
+                                ) : (
+                                    <Alert>
+                                        <Info className="h-4 w-4" />
+                                        <AlertTitle>No Projects Found</AlertTitle>
+                                        <AlertDescription>
+                                            Start by creating your first project to organize your work.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </>
+                )}
             </div>
 
             {/* Right Content Area: Project Details or Placeholder */}
