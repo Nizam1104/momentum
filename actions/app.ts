@@ -1,6 +1,8 @@
 import { fetchUser } from "@/actions/user"
 import { useAppStore } from "@/stores/app"
 
+import { _fetchUser } from "./clientActions/user"
+
 interface SplashProps {
     userId: string | null
 }
@@ -17,11 +19,12 @@ const splash = async function(props: SplashProps) {
 
         promises.push(fetchUser(props.userId))
 
+        await _fetchUser()
+
         const allPromiseRes = await Promise.all(promises)
 
         appState.setSplashed(true)
     } catch (error) {
-        console.log('a', error)
     }
 }
 
