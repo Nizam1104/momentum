@@ -1,14 +1,13 @@
-
 export interface User {
     id: string;
-    name?: string;
+    name?: string | null;
     email: string;
-    emailVerified?: Date;
-    image?: string;
+    emailVerified?: Date | null;
+    image?: string | null;
     timezone: string;
-    preferences: Record<string, any>;
+    preferences?: Record<string, any> | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface Day {
@@ -27,7 +26,7 @@ export interface User {
     tomorrowFocus?: string | null;
     isCompleted: boolean;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
   
   export interface Note {
@@ -41,7 +40,7 @@ export interface User {
     projectId?: string | null;
     categoryId?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export enum ProjectStatus {
@@ -74,7 +73,7 @@ export interface User {
     categoryId?: string | null;
     parentId?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
 
@@ -99,7 +98,7 @@ export enum TaskStatus {
     categoryId?: string | null;
     parentId?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface TaskCompletion {
@@ -147,14 +146,14 @@ export enum TaskStatus {
     completedAt?: Date | null;
     isQuantifiable: boolean;
     targetValue?: number | null;
-    currentValue: number;
+    currentValue?: number | null;
     unit?: string | null;
     userId: string;
     projectId?: string | null;
     categoryId?: string | null;
     parentId?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
   
   export interface DailyGoal {
@@ -165,7 +164,7 @@ export enum TaskStatus {
     progress: number;
     notes?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
   
   // src/stores/common/enums.ts
@@ -207,7 +206,7 @@ export enum NoteType {
     isActive: boolean;
     userId: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface HabitLog {
@@ -218,7 +217,7 @@ export enum NoteType {
     count: number;
     notes?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface TimeEntry {
@@ -231,7 +230,7 @@ export enum NoteType {
     projectId?: string | null;
     taskId?: string | null;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface Category {
@@ -242,7 +241,7 @@ export enum NoteType {
     icon?: string | null;
     userId: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface Tag {
@@ -251,7 +250,7 @@ export enum NoteType {
     color: string;
     userId: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface Template {
@@ -262,7 +261,7 @@ export enum NoteType {
     content: Record<string, any>; // Prisma Json type
     userId: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
   
   export interface Achievement {
@@ -274,7 +273,7 @@ export enum NoteType {
     criteria: Record<string, any>; // Prisma Json type
     userId: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date | null;
   }
 
   export interface UserAchievement {

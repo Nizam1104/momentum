@@ -1,17 +1,24 @@
 // src/stores/useTaskStore.ts
-import { create } from 'zustand';
-import { TaskStatus, Priority } from '@/types/states';
-import { Task } from '@/types/states';
+import { create } from "zustand";
+import {
+  Task,
+  TaskStatus,
+  Priority,
+  getTasksByProject,
+  createTask,
+  updateTask as updateTaskAction,
+  deleteTask,
+  updateTaskStatus as updateTaskStatusAction
+} from '@/actions/clientActions';
 
-
-// 2. State Interface
+// State Interface
 interface TaskState {
   tasks: Task[];
   selectedTask: Task | null;
   loading: boolean;
   error: string | null;
 
-  // 3. Getters (Selectors)
+  // Getters (Selectors)
   getTasks: () => Task[];
   getTaskById: (id: string) => Task | undefined;
   getSelectedTask: () => Task | null;
@@ -20,7 +27,7 @@ interface TaskState {
   getTasksByCategoryId: (categoryId: string) => Task[];
   getSubtasks: (parentId: string) => Task[];
 
-  // 4. Setters (Actions)
+  // Setters (Actions)
   setTasks: (tasks: Task[]) => void;
   addTask: (task: Task) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
@@ -29,6 +36,13 @@ interface TaskState {
   setLoading: (isLoading: boolean) => void;
   setError: (errorMessage: string | null) => void;
   reset: () => void;
+  
+  // Async Actions with Supabase
+  fetchTasksByProject: (projectId: string) => Promise<void>;
+  createTaskAsync: (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateTaskAsync: (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+  deleteTaskAsync: (taskId: string) => Promise<void>;
+  updateTaskStatusAsync: (taskId: string, status: TaskStatus) => Promise<void>;
 }
 
 const initialState = {
@@ -38,7 +52,7 @@ const initialState = {
   error: null,
 };
 
-// 5. Create Store
+// Create Store
 export const useTaskStore = create<TaskState>((set, get) => ({
   ...initialState,
 
@@ -68,4 +82,79 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   setLoading: (isLoading) => set({ loading: isLoading }),
   setError: (errorMessage) => set({ error: errorMessage }),
   reset: () => set(initialState),
+
+  // Async Actions with Supabase
+  fetchTasksByProject: async (projectId: string) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await getTasksByProject(projectId);
+      if (result.success && result.data) {
+        set({ tasks: result.data, loading: false });
+      } else {
+        set({ error: result.error || 'Failed to fetch tasks', loading: false });
+      }
+    } catch (error) {
+      set({ error: 'Failed to fetch tasks', loading: false });
+    }
+  },
+
+  createTaskAsync: async (taskData) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await createTask(taskData);
+      if (result.success && result.data) {
+        get().addTask(result.data);
+        set({ loading: false });
+      } else {
+        set({ error: result.error || 'Failed to create task', loading: false });
+      }
+    } catch (error) {
+      set({ error: 'Failed to create task', loading: false });
+    }
+  },
+
+  updateTaskAsync: async (taskId, updates) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await updateTaskAction(taskId, updates);
+      if (result.success && result.data) {
+        get().updateTask(taskId, result.data);
+        set({ loading: false });
+      } else {
+        set({ error: result.error || 'Failed to update task', loading: false });
+      }
+    } catch (error) {
+      set({ error: 'Failed to update task', loading: false });
+    }
+  },
+
+  deleteTaskAsync: async (taskId) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await deleteTask(taskId);
+      if (result.success) {
+        get().removeTask(taskId);
+        set({ loading: false });
+      } else {
+        set({ error: result.error || 'Failed to delete task', loading: false });
+      }
+    } catch (error) {
+      set({ error: 'Failed to delete task', loading: false });
+    }
+  },
+
+  updateTaskStatusAsync: async (taskId, status) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await updateTaskStatusAction(taskId, status);
+      if (result.success && result.data) {
+        get().updateTask(taskId, result.data);
+        set({ loading: false });
+      } else {
+        set({ error: result.error || 'Failed to update task status', loading: false });
+      }
+    } catch (error) {
+      set({ error: 'Failed to update task status', loading: false });
+    }
+  },
 }));

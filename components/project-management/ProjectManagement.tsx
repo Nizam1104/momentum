@@ -1,218 +1,376 @@
 // components/project-management/ProjectManagement.tsx
-'use client';
+"use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { Project, Task, ProjectStatus, TaskStatus } from './enums';
-import { mockProjects, mockTasks } from './mock-data';
-import { ProjectCard } from './ProjectCard';
-import { ProjectDetails } from './ProjectDetails';
-import { ProjectForm } from './ProjectForm';
-import { Button } from '@/components/ui/button';
-// Import ChevronLeft and ChevronRight for the toggle button
-import { PlusCircle, LayoutGrid, List, FolderOpen, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { calculateProjectProgress, generateId } from './utils';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-import { Info } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useProjectStore } from "@/stores/project";
+import { useTaskStore } from "@/stores/task";
+import { ProjectCard } from "./ProjectCard";
+import { ProjectDetails } from "./ProjectDetails";
+import { ProjectForm } from "./ProjectForm";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PlusCircle,
+  LayoutGrid,
+  FolderOpen,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Info } from "lucide-react";
+import {
+  Project,
+  Task,
+  ProjectStatus,
+  TaskStatus,
+} from "@/actions/clientActions";
 
 export default function ProjectManagement() {
-    const [projects, setProjects] = useState<Project[]>(mockProjects);
-    const [tasks, setTasks] = useState<Task[]>(mockTasks);
-    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-    const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
-    const [editingProject, setEditingProject] = useState<Project | null>(null);
-    // State to manage sidebar collapse
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { data: session } = useSession();
 
-    // Memoize projects with updated progress
-    const projectsWithProgress = useMemo(() => {
-        return projects.map(project => ({
-            ...project,
-            progress: calculateProjectProgress(project.id, tasks),
-        }));
-    }, [projects, tasks]);
+  // Store selectors
+  const {
+    projects,
+    selectedProject,
+    loading: projectLoading,
+    error: projectError,
+    setSelectedProject,
+    fetchProjects,
+    createProjectAsync,
+    updateProjectAsync,
+    deleteProjectAsync,
+  } = useProjectStore();
 
-    const selectedProject = useMemo(() => {
-        return projectsWithProgress.find(p => p.id === selectedProjectId);
-    }, [selectedProjectId, projectsWithProgress]);
+  const {
+    tasks,
+    loading: taskLoading,
+    error: taskError,
+    fetchTasksByProject,
+    createTaskAsync,
+    updateTaskAsync,
+    deleteTaskAsync,
+    updateTaskStatusAsync,
+  } = useTaskStore();
 
-    const selectedProjectTasks = useMemo(() => {
-        return tasks.filter(task => task.projectId === selectedProjectId);
-    }, [selectedProjectId, tasks]);
+  // Local state
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
-    // --- Project Handlers ---
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
-    const handleCreateProject = useCallback((newProjectData: Omit<Project, 'id' | 'userId' | 'progress' | 'createdAt' | 'updatedAt' | 'completedAt'>) => {
-        const newProject: Project = {
-            ...newProjectData,
-            id: generateId('proj'),
-            userId: 'user_123', // Mock user ID
-            progress: 0, // Initial progress
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            completedAt: null,
-        };
-        setProjects(prev => [...prev, newProject]);
+  // Fetch projects when component mounts and user is available
+  useEffect(() => {
+    if (session?.user?.id && isClient) {
+      fetchProjects(session.user.id);
+    }
+  }, [session?.user?.id, isClient, fetchProjects]);
+
+  // Fetch tasks when a project is selected
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchTasksByProject(selectedProjectId);
+    }
+  }, [selectedProjectId, fetchTasksByProject]);
+
+  const selectedProjectTasks = useMemo(() => {
+    return tasks.filter((task) => task.projectId === selectedProjectId);
+  }, [selectedProjectId, tasks]);
+
+  // Calculate project progress
+  const projectsWithProgress = useMemo(() => {
+    return projects.map((project) => {
+      const projectTasks = tasks.filter(
+        (task) => task.projectId === project.id,
+      );
+      const completedTasks = projectTasks.filter(
+        (task) => task.status === TaskStatus.COMPLETED,
+      );
+      const progress =
+        projectTasks.length > 0
+          ? (completedTasks.length / projectTasks.length) * 100
+          : 0;
+
+      return {
+        ...project,
+        progress: Math.round(progress),
+      };
+    });
+  }, [projects, tasks]);
+
+  const currentSelectedProject = useMemo(() => {
+    return projectsWithProgress.find((p) => p.id === selectedProjectId);
+  }, [selectedProjectId, projectsWithProgress]);
+
+  // Project Handlers
+  const handleCreateProject = useCallback(
+    async (
+      newProjectData: Omit<
+        Project,
+        "id" | "createdAt" | "updatedAt" | "progress"
+      >,
+    ) => {
+      if (session?.user?.id) {
+        await createProjectAsync({
+          ...newProjectData,
+          userId: session.user.id,
+        });
         setIsProjectFormOpen(false);
-    }, []);
+      }
+    },
+    [session?.user?.id, createProjectAsync],
+  );
 
-    const handleUpdateProject = useCallback((updatedProject: Project) => {
-        setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-        setIsProjectFormOpen(false);
-        setEditingProject(null);
-    }, []);
+  const handleUpdateProject = useCallback(
+    async (updatedProject: Project) => {
+      await updateProjectAsync(updatedProject.id, updatedProject);
+      setIsProjectFormOpen(false);
+      setEditingProject(null);
+    },
+    [updateProjectAsync],
+  );
 
-    const handleDeleteProject = useCallback((projectId: string) => {
-        if (window.confirm('Are you sure you want to delete this project and all its tasks?')) {
-            setProjects(prev => prev.filter(p => p.id !== projectId));
-            setTasks(prev => prev.filter(t => t.projectId !== projectId)); // Delete associated tasks
-            if (selectedProjectId === projectId) {
-                setSelectedProjectId(null); // Deselect if the current project is deleted
-            }
+  const handleDeleteProject = useCallback(
+    async (projectId: string) => {
+      if (
+        window.confirm(
+          "Are you sure you want to delete this project and all its tasks?",
+        )
+      ) {
+        await deleteProjectAsync(projectId);
+        if (selectedProjectId === projectId) {
+          setSelectedProjectId(null);
         }
-    }, [selectedProjectId]);
+      }
+    },
+    [selectedProjectId, deleteProjectAsync],
+  );
 
-    const handleEditProjectClick = useCallback((project: Project) => {
-        setEditingProject(project);
-        setIsProjectFormOpen(true);
-    }, []);
+  const handleEditProjectClick = useCallback((project: Project) => {
+    setEditingProject(project);
+    setIsProjectFormOpen(true);
+  }, []);
 
-    // --- Task Handlers ---
+  const handleProjectSelect = useCallback(
+    (projectId: string) => {
+      setSelectedProjectId(projectId);
+      const project = projects.find((p) => p.id === projectId);
+      if (project) {
+        setSelectedProject(project);
+      }
+    },
+    [projects, setSelectedProject],
+  );
 
-    const handleAddTask = useCallback((newTaskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-        const newTask: Task = {
-            ...newTaskData,
-            id: generateId('task'),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            completedAt: newTaskData.status === TaskStatus.COMPLETED ? new Date() : null,
-        };
-        setTasks(prev => [...prev, newTask]);
-    }, []);
+  // Task Handlers
+  const handleAddTask = useCallback(
+    async (newTaskData: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
+      await createTaskAsync(newTaskData);
+    },
+    [createTaskAsync],
+  );
 
-    const handleUpdateTask = useCallback((updatedTask: Task) => {
-        setTasks(prev => prev.map(t => t.id === updatedTask.id ? {
-            ...updatedTask,
-            completedAt: updatedTask.status === TaskStatus.COMPLETED && !t.completedAt ? new Date() : updatedTask.completedAt,
-            updatedAt: new Date(),
-        } : t));
-    }, []);
+  const handleUpdateTask = useCallback(
+    async (updatedTask: Task) => {
+      await updateTaskAsync(updatedTask.id, updatedTask);
+    },
+    [updateTaskAsync],
+  );
 
-    const handleDeleteTask = useCallback((taskId: string, projectId: string) => {
-        if (window.confirm('Are you sure you want to delete this task?')) {
-            setTasks(prev => prev.filter(t => t.id !== taskId));
-        }
-    }, []);
+  const handleDeleteTask = useCallback(
+    async (taskId: string) => {
+      if (window.confirm("Are you sure you want to delete this task?")) {
+        await deleteTaskAsync(taskId);
+      }
+    },
+    [deleteTaskAsync],
+  );
 
+  const isLoading = projectLoading || taskLoading;
+  const hasError = projectError || taskError;
+
+  if (!isClient) {
     return (
-        <div className="flex h-full overflow-hidden bg-background">
-            {/* Left Sidebar: Project List */}
-            <div className={`
-                ${isSidebarOpen ? 'w-full md:w-1/3 lg:w-1/3 p-6' : 'w-16 p-4'}
-                border-r bg-card/50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out
-            `}>
-                <div className={`flex items-center justify-between ${isSidebarOpen ? 'mb-6' : 'mb-0'}`}>
-                    {isSidebarOpen ? (
-                        <>
-                            <h1 className="text-xl font-extrabold flex items-center gap-2">
-                                <FolderOpen className="h-7 w-7 text-primary" /> Projects
-                            </h1>
-                            <div className="flex items-center gap-2">
-                                <Button size={'sm'} onClick={() => { setEditingProject(null); setIsProjectFormOpen(true); }}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> New Project
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
-                                    <ChevronLeft className="h-5 w-5" />
-                                </Button>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex flex-col items-center w-full gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-                                <ChevronRight className="h-5 w-5" />
-                            </Button>
-                            <FolderOpen className="h-7 w-7 text-primary" />
-                        </div>
-                    )}
-                </div>
-
-                {isSidebarOpen && (
-                    <>
-                        <Separator className="mb-6" />
-
-                        <ScrollArea className="flex-grow pr-4 -mr-4"> {/* Adjust padding for scrollbar */}
-                            <div className="grid gap-4">
-                                {projectsWithProgress.length > 0 ? (
-                                    projectsWithProgress.map(project => (
-                                        <ProjectCard
-                                            key={project.id}
-                                            project={project}
-                                            onClick={setSelectedProjectId}
-                                            onEdit={handleEditProjectClick}
-                                            onDelete={handleDeleteProject}
-                                        />
-                                    ))
-                                ) : (
-                                    <Alert>
-                                        <Info className="h-4 w-4" />
-                                        <AlertTitle>No Projects Found</AlertTitle>
-                                        <AlertDescription>
-                                            Start by creating your first project to organize your work.
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
-                            </div>
-                        </ScrollArea>
-                    </>
-                )}
-            </div>
-
-            {/* Right Content Area: Project Details or Placeholder */}
-            <div className="flex-1 p-6 overflow-hidden">
-                {selectedProject ? (
-                    <ProjectDetails
-                        project={selectedProject}
-                        tasks={selectedProjectTasks}
-                        onEditProject={handleEditProjectClick}
-                        onDeleteProject={handleDeleteProject}
-                        onAddTask={handleAddTask}
-                        onUpdateTask={handleUpdateTask}
-                        onDeleteTask={handleDeleteTask}
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                        <LayoutGrid className="h-24 w-24 mb-6 text-primary/50" />
-                        <h2 className="text-2xl font-semibold mb-2">Select a Project</h2>
-                        <p className="max-w-md">
-                            Choose a project from the left sidebar to view its details and manage tasks, or create a new project to get started.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            {/* Project Form Dialog */}
-            <Dialog open={isProjectFormOpen} onOpenChange={setIsProjectFormOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
-                    </DialogHeader>
-                    <ProjectForm
-                        initialData={editingProject}
-                        onSubmit={(data) => {
-                            if ('id' in data) { // Check if it's an existing project (has an ID)
-                                handleUpdateProject(data as Project);
-                            } else {
-                                handleCreateProject(data as Omit<Project, 'id' | 'userId' | 'progress' | 'createdAt' | 'updatedAt' | 'completedAt'>);
-                            }
-                        }}
-                        onCancel={() => { setIsProjectFormOpen(false); setEditingProject(null); }}
-                    />
-                </DialogContent>
-            </Dialog>
+      <div className="flex h-full overflow-hidden bg-background">
+        <div className="w-full md:w-1/3 lg:w-1/3 p-6 border-r bg-card/50 flex flex-col">
+          <Skeleton className="h-8 w-32 mb-4" />
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
         </div>
+        <div className="flex-1 p-6">
+          <Skeleton className="h-8 w-48 mb-4" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="flex h-full overflow-hidden bg-background">
+      {hasError && (
+        <Alert
+          className="absolute top-4 right-4 w-auto z-50"
+          variant="destructive"
+        >
+          <AlertDescription>{projectError || taskError}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Left Sidebar: Project List */}
+      <div
+        className={`
+          ${isSidebarOpen ? "w-full md:w-1/3 lg:w-1/3 p-6" : "w-16 p-4"}
+          border-r bg-card/50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out
+        `}
+      >
+        <div
+          className={`flex items-center justify-between ${isSidebarOpen ? "mb-6" : "mb-0"}`}
+        >
+          {isSidebarOpen ? (
+            <>
+              <h1 className="text-xl font-extrabold flex items-center gap-2">
+                <FolderOpen className="h-7 w-7 text-primary" /> Projects
+              </h1>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setEditingProject(null);
+                    setIsProjectFormOpen(true);
+                  }}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> New Project
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center w-full gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+              <FolderOpen className="h-7 w-7 text-primary" />
+            </div>
+          )}
+        </div>
+
+        {isSidebarOpen && (
+          <>
+            <Separator className="mb-6" />
+
+            <ScrollArea className="flex-grow pr-4 -mr-4 overflow-y-auto">
+              <div className="grid gap-4">
+                {isLoading && projects.length === 0 ? (
+                  [...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full" />
+                  ))
+                ) : projectsWithProgress.length > 0 ? (
+                  projectsWithProgress.map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onClick={handleProjectSelect}
+                      onEdit={handleEditProjectClick}
+                      onDelete={handleDeleteProject}
+                    />
+                  ))
+                ) : (
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>No Projects Found</AlertTitle>
+                    <AlertDescription>
+                      Start by creating your first project to organize your
+                      work.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </ScrollArea>
+          </>
+        )}
+      </div>
+
+      {/* Right Content Area: Project Details or Placeholder */}
+      <div className="flex-1 p-6 overflow-hidden">
+        {currentSelectedProject ? (
+          <ProjectDetails
+            project={currentSelectedProject}
+            tasks={selectedProjectTasks}
+            onEditProject={handleEditProjectClick}
+            onDeleteProject={handleDeleteProject}
+            onAddTask={handleAddTask}
+            onUpdateTask={handleUpdateTask}
+            onDeleteTask={handleDeleteTask}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+            <LayoutGrid className="h-24 w-24 mb-6 text-primary/50" />
+            <h2 className="text-2xl font-semibold mb-2">Select a Project</h2>
+            <p className="max-w-md">
+              Choose a project from the left sidebar to view its details and
+              manage tasks, or create a new project to get started.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Project Form Dialog */}
+      <Dialog open={isProjectFormOpen} onOpenChange={setIsProjectFormOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingProject ? "Edit Project" : "Create New Project"}
+            </DialogTitle>
+          </DialogHeader>
+          <ProjectForm
+            initialData={editingProject}
+            onSubmit={(data) => {
+              if ("id" in data) {
+                handleUpdateProject(data as Project);
+              } else {
+                handleCreateProject(
+                  data as Omit<
+                    Project,
+                    "id" | "createdAt" | "updatedAt" | "progress"
+                  >,
+                );
+              }
+            }}
+            onCancel={() => {
+              setIsProjectFormOpen(false);
+              setEditingProject(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

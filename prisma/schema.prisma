@@ -39,7 +39,7 @@ model User {
   userAchievements UserAchievement[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([email])
 }
@@ -47,7 +47,7 @@ model User {
 // Daily Check-in System
 model Day {
   id     String   @id @default(cuid())
-  date   DateTime @unique @db.Date
+  date   DateTime @db.Date
   userId String
   
   // Daily metrics and ratings
@@ -76,7 +76,7 @@ model Day {
   taskCompletions TaskCompletion[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@unique([userId, date])
   @@index([userId, date])
@@ -104,7 +104,7 @@ model Note {
   tags       NoteTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([dayId])
   @@index([projectId])
@@ -145,7 +145,7 @@ model Project {
   categoryId  String?
   category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   parentId    String?
-  parent      Project?      @relation("ProjectHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  parent      Project?      @relation("ProjectHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subprojects Project[]     @relation("ProjectHierarchy")
   
   tasks       Task[]
@@ -155,7 +155,7 @@ model Project {
   tags        ProjectTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([userId])
   @@index([categoryId])
@@ -194,7 +194,7 @@ model Task {
   categoryId  String?
   category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   parentId    String?
-  parent      Task?            @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  parent      Task?            @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subtasks    Task[]           @relation("TaskHierarchy")
   
   completions TaskCompletion[]
@@ -202,7 +202,7 @@ model Task {
   tags        TaskTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([projectId])
   @@index([categoryId])
@@ -263,14 +263,14 @@ model Goal {
   categoryId String?
   category   Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   parentId   String?
-  parent     Goal?        @relation("GoalHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  parent     Goal?        @relation("GoalHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subgoals   Goal[]       @relation("GoalHierarchy")
   
   dailyGoals DailyGoal[]
   tags       GoalTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([userId])
   @@index([projectId])
@@ -311,7 +311,7 @@ model DailyGoal {
   notes    String?           @db.Text
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@unique([dayId, goalId])
   @@index([dayId])
@@ -344,7 +344,7 @@ model Habit {
   tags      HabitTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([userId])
   @@index([category])
@@ -371,7 +371,7 @@ model HabitLog {
   notes     String? @db.Text
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@unique([dayId, habitId])
   @@index([dayId])
@@ -395,7 +395,7 @@ model TimeEntry {
   task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([dayId])
   @@index([projectId])
@@ -420,7 +420,7 @@ model Category {
   goals    Goal[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@unique([userId, name])
   @@index([userId])
@@ -442,7 +442,7 @@ model Tag {
   habits   HabitTag[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@unique([userId, name])
   @@index([userId])
@@ -516,7 +516,7 @@ model Template {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -547,7 +547,7 @@ model Achievement {
   userAchievements UserAchievement[]
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 
   @@index([userId])
 }
@@ -589,7 +589,7 @@ model Account {
   session_state     String?
  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
  
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
  
@@ -603,7 +603,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime? @updatedAt
 }
  
 model VerificationToken {

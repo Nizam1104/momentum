@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { Project, ProjectStatus, Priority } from '@/types/states';
+import { 
+  Project, 
+  ProjectStatus, 
+  Priority,
+  getAllProjects,
+  createProject,
+  updateProject as updateProjectAction,
+  deleteProject,
+  updateProjectProgress as updateProjectProgressAction
+} from '@/actions/clientActions';
 
 interface ProjectState {
   // State
@@ -24,6 +33,13 @@ interface ProjectState {
   removeProject: (projectId: string) => void;
   updateProjectProgress: (projectId: string, progress: number) => void;
   updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
+  
+  // Async Actions with Supabase
+  fetchProjects: (userId: string) => Promise<void>;
+  createProjectAsync: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'progress'>) => Promise<void>;
+  updateProjectAsync: (projectId: string, updates: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>) => Promise<void>;
+  deleteProjectAsync: (projectId: string) => Promise<void>;
+  updateProjectProgressAsync: (projectId: string, progress: number) => Promise<void>;
   setFilters: (filters: Partial<ProjectState['filters']>) => void;
   clearFilters: () => void;
   applyFilters: () => void;
@@ -266,6 +282,86 @@ export const useProjectStore = create<ProjectState>()(
           const isActive = project.status === ProjectStatus.ACTIVE;
           return userId ? isActive && project.userId === userId : isActive;
         }).length;
+      },
+
+      // Async Actions with Supabase
+      fetchProjects: async (userId: string) => {
+        set({ isLoading: true, error: null }, false, 'fetchProjects:start');
+        try {
+          const result = await getAllProjects(userId);
+          if (result.success && result.data) {
+            set({ projects: result.data, isLoading: false }, false, 'fetchProjects:success');
+            get().applyFilters();
+          } else {
+            set({ error: result.error || 'Failed to fetch projects', isLoading: false }, false, 'fetchProjects:error');
+          }
+        } catch (error) {
+          set({ error: 'Failed to fetch projects', isLoading: false }, false, 'fetchProjects:error');
+        }
+      },
+
+      createProjectAsync: async (projectData) => {
+        set({ isLoading: true, error: null }, false, 'createProject:start');
+        try {
+          const result = await createProject(projectData);
+          if (result.success && result.data) {
+            get().addProject(result.data);
+            set({ isLoading: false }, false, 'createProject:success');
+            get().applyFilters();
+          } else {
+            set({ error: result.error || 'Failed to create project', isLoading: false }, false, 'createProject:error');
+          }
+        } catch (error) {
+          set({ error: 'Failed to create project', isLoading: false }, false, 'createProject:error');
+        }
+      },
+
+      updateProjectAsync: async (projectId, updates) => {
+        set({ isLoading: true, error: null }, false, 'updateProject:start');
+        try {
+          const result = await updateProjectAction(projectId, updates);
+          if (result.success && result.data) {
+            get().updateProject(projectId, result.data);
+            set({ isLoading: false }, false, 'updateProject:success');
+            get().applyFilters();
+          } else {
+            set({ error: result.error || 'Failed to update project', isLoading: false }, false, 'updateProject:error');
+          }
+        } catch (error) {
+          set({ error: 'Failed to update project', isLoading: false }, false, 'updateProject:error');
+        }
+      },
+
+      deleteProjectAsync: async (projectId) => {
+        set({ isLoading: true, error: null }, false, 'deleteProject:start');
+        try {
+          const result = await deleteProject(projectId);
+          if (result.success) {
+            get().removeProject(projectId);
+            set({ isLoading: false }, false, 'deleteProject:success');
+            get().applyFilters();
+          } else {
+            set({ error: result.error || 'Failed to delete project', isLoading: false }, false, 'deleteProject:error');
+          }
+        } catch (error) {
+          set({ error: 'Failed to delete project', isLoading: false }, false, 'deleteProject:error');
+        }
+      },
+
+      updateProjectProgressAsync: async (projectId, progress) => {
+        set({ isLoading: true, error: null }, false, 'updateProjectProgress:start');
+        try {
+          const result = await updateProjectProgressAction(projectId, progress);
+          if (result.success && result.data) {
+            get().updateProject(projectId, result.data);
+            set({ isLoading: false }, false, 'updateProjectProgress:success');
+            get().applyFilters();
+          } else {
+            set({ error: result.error || 'Failed to update project progress', isLoading: false }, false, 'updateProjectProgress:error');
+          }
+        } catch (error) {
+          set({ error: 'Failed to update project progress', isLoading: false }, false, 'updateProjectProgress:error');
+        }
       },
 
       // Reset
