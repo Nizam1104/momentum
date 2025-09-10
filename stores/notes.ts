@@ -1,69 +1,79 @@
-// src/stores/useProjectStore.ts
-import { create } from 'zustand';
-import { ProjectStatus, Priority } from '@/types/states';
-import { Project } from '@/types/states';
+// src/stores/useNoteStore.ts
+import { create } from "zustand";
+import { Note, NoteType } from "@/types/states";
 
-// 2. State Interface
-interface ProjectState {
-  projects: Project[];
-  selectedProject: Project | null;
+// State Interface
+interface NoteState {
+  notes: Note[];
+  selectedNote: Note | null;
   loading: boolean;
   error: string | null;
 
-  // 3. Getters (Selectors)
-  getProjects: () => Project[];
-  getProjectById: (id: string) => Project | undefined;
-  getSelectedProject: () => Project | null;
-  getProjectsByUserId: (userId: string) => Project[];
-  getProjectsByStatus: (status: ProjectStatus) => Project[];
-  getProjectsByCategoryId: (categoryId: string) => Project[];
-  getSubprojects: (parentId: string) => Project[];
+  // Getters (Selectors)
+  getNotes: () => Note[];
+  getNoteById: (id: string) => Note | undefined;
+  getSelectedNote: () => Note | null;
+  getNotesByDayId: (dayId: string) => Note[];
+  getNotesByProjectId: (projectId: string) => Note[];
+  getNotesByCategoryId: (categoryId: string) => Note[];
+  getNotesByType: (type: NoteType) => Note[];
+  getPinnedNotes: () => Note[];
+  getArchivedNotes: () => Note[];
 
-  // 4. Setters (Actions)
-  setProjects: (projects: Project[]) => void;
-  addProject: (project: Project) => void;
-  updateProject: (id: string, updates: Partial<Project>) => void;
-  removeProject: (id: string) => void;
-  setSelectedProject: (project: Project | null) => void;
+  // Setters (Actions)
+  setNotes: (notes: Note[]) => void;
+  addNote: (note: Note) => void;
+  updateNote: (id: string, updates: Partial<Note>) => void;
+  removeNote: (id: string) => void;
+  setSelectedNote: (note: Note | null) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (errorMessage: string | null) => void;
   reset: () => void;
 }
 
 const initialState = {
-  projects: [],
-  selectedProject: null,
+  notes: [],
+  selectedNote: null,
   loading: false,
   error: null,
 };
 
-// 5. Create Store
-export const useProjectStore = create<ProjectState>((set, get) => ({
+// Create Store
+export const useNoteStore = create<NoteState>((set, get) => ({
   ...initialState,
 
-  getProjects: () => get().projects,
-  getProjectById: (id) => get().projects.find((project) => project.id === id),
-  getSelectedProject: () => get().selectedProject,
-  getProjectsByUserId: (userId) => get().projects.filter((project) => project.userId === userId),
-  getProjectsByStatus: (status) => get().projects.filter((project) => project.status === status),
-  getProjectsByCategoryId: (categoryId) => get().projects.filter((project) => project.categoryId === categoryId),
-  getSubprojects: (parentId) => get().projects.filter((project) => project.parentId === parentId),
+  getNotes: () => get().notes,
+  getNoteById: (id) => get().notes.find((note) => note.id === id),
+  getSelectedNote: () => get().selectedNote,
+  getNotesByDayId: (dayId) =>
+    get().notes.filter((note) => note.dayId === dayId),
+  getNotesByProjectId: (projectId) =>
+    get().notes.filter((note) => note.projectId === projectId),
+  getNotesByCategoryId: (categoryId) =>
+    get().notes.filter((note) => note.categoryId === categoryId),
+  getNotesByType: (type) => get().notes.filter((note) => note.type === type),
+  getPinnedNotes: () =>
+    get().notes.filter((note) => note.isPinned && !note.isArchived),
+  getArchivedNotes: () => get().notes.filter((note) => note.isArchived),
 
-  setProjects: (projects) => set({ projects }),
-  addProject: (project) => set((state) => ({ projects: [...state.projects, project] })),
-  updateProject: (id, updates) =>
+  setNotes: (notes) => set({ notes }),
+  addNote: (note) => set((state) => ({ notes: [...state.notes, note] })),
+  updateNote: (id, updates) =>
     set((state) => ({
-      projects: state.projects.map((project) =>
-        project.id === id ? { ...project, ...updates } : project
+      notes: state.notes.map((note) =>
+        note.id === id ? { ...note, ...updates } : note,
       ),
-      selectedProject: state.selectedProject?.id === id ? { ...state.selectedProject, ...updates } : state.selectedProject,
+      selectedNote:
+        state.selectedNote?.id === id
+          ? { ...state.selectedNote, ...updates }
+          : state.selectedNote,
     })),
-  removeProject: (id) =>
+  removeNote: (id) =>
     set((state) => ({
-      projects: state.projects.filter((project) => project.id !== id),
-      selectedProject: state.selectedProject?.id === id ? null : state.selectedProject,
+      notes: state.notes.filter((note) => note.id !== id),
+      selectedNote: state.selectedNote?.id === id ? null : state.selectedNote,
     })),
-  setSelectedProject: (project) => set({ selectedProject: project }),
+  setSelectedNote: (note) => set({ selectedNote: note }),
   setLoading: (isLoading) => set({ loading: isLoading }),
   setError: (errorMessage) => set({ error: errorMessage }),
   reset: () => set(initialState),

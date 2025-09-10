@@ -3,15 +3,16 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { ActionResult, Task, TaskStatus, Priority } from "./types";
 import { nanoid } from "nanoid";
+import { getUserId } from "@/utils/shared";
 
 const toTask = (task: any): Task => {
-    return {
-        ...task,
-        createdAt: new Date(task.createdAt),
-        updatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined,
-        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-        completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
-    };
+  return {
+    ...task,
+    createdAt: new Date(task.createdAt),
+    updatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined,
+    dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+    completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
+  };
 };
 
 export async function getTasksByProject(
@@ -64,12 +65,16 @@ export async function createTask(
   taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
 ): Promise<ActionResult<Task>> {
   try {
+    console.log('mnv:: 123')
     const supabase = await getSupabaseClient();
+    const userId = await getUserId();
     const { data, error } = await supabase
       .from("Task")
       .insert({
         ...taskData,
+        userId,
         id: nanoid(),
+        dayId: nanoid()
       })
       .select()
       .single();

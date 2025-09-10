@@ -7,67 +7,58 @@ export interface ActionResult<T> {
 
 // Common enums based on Prisma schema
 export enum ProjectStatus {
-  ACTIVE = 'ACTIVE',
-  ON_HOLD = 'ON_HOLD',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  ARCHIVED = 'ARCHIVED'
+  ACTIVE = "ACTIVE",
+  ON_HOLD = "ON_HOLD",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  ARCHIVED = "ARCHIVED",
 }
 
 export enum TaskStatus {
-  TODO = 'TODO',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  TODO = "TODO",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum Priority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT'
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
 }
 
 export enum NoteType {
-  GENERAL = 'GENERAL',
-  MEETING = 'MEETING',
-  IDEA = 'IDEA',
-  LEARNING = 'LEARNING',
-  REFLECTION = 'REFLECTION',
-  PLANNING = 'PLANNING'
+  GENERAL = "GENERAL",
+  MEETING = "MEETING",
+  IDEA = "IDEA",
+  LEARNING = "LEARNING",
+  REFLECTION = "REFLECTION",
+  PLANNING = "PLANNING",
 }
 
 export enum GoalType {
-  PERSONAL = 'PERSONAL',
-  PROFESSIONAL = 'PROFESSIONAL',
-  HEALTH = 'HEALTH',
-  FINANCIAL = 'FINANCIAL',
-  LEARNING = 'LEARNING',
-  RELATIONSHIP = 'RELATIONSHIP',
-  CREATIVE = 'CREATIVE'
+  PERSONAL = "PERSONAL",
+  PROFESSIONAL = "PROFESSIONAL",
+  HEALTH = "HEALTH",
+  FINANCIAL = "FINANCIAL",
+  LEARNING = "LEARNING",
+  RELATIONSHIP = "RELATIONSHIP",
+  CREATIVE = "CREATIVE",
 }
 
 export enum GoalStatus {
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
-}
-
-export enum HabitType {
-  GENERAL = 'GENERAL',
-  HEALTH = 'HEALTH',
-  PRODUCTIVITY = 'PRODUCTIVITY',
-  MINDFULNESS = 'MINDFULNESS',
-  LEARNING = 'LEARNING',
-  SOCIAL = 'SOCIAL'
+  ACTIVE = "ACTIVE",
+  PAUSED = "PAUSED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum DailyGoalStatus {
-  NOT_STARTED = 'NOT_STARTED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  SKIPPED = 'SKIPPED'
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  SKIPPED = "SKIPPED",
 }
 
 // Base interfaces for entities
@@ -110,7 +101,8 @@ export interface Task extends BaseEntity {
   completedAt?: Date;
   estimatedMinutes?: number;
   actualMinutes?: number;
-  projectId: string;
+  projectId?: string;
+  dayId?: string;
   categoryId?: string;
   parentId?: string;
 }
@@ -133,16 +125,6 @@ export interface Goal extends BaseEntity {
   projectId?: string;
   categoryId?: string;
   parentId?: string;
-}
-
-export interface Habit extends BaseEntity {
-  name: string;
-  description?: string;
-  category: HabitType;
-  color: string;
-  targetFrequency: number;
-  isActive: boolean;
-  userId: string;
 }
 
 export interface Note extends BaseEntity {
@@ -191,14 +173,6 @@ export interface DailyGoal extends BaseEntity {
   goalId: string;
   status: DailyGoalStatus;
   progress: number;
-  notes?: string;
-}
-
-export interface HabitLog extends BaseEntity {
-  dayId: string;
-  habitId: string;
-  completed: boolean;
-  count: number;
   notes?: string;
 }
 

@@ -3,27 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Import components
 import DayComponent from "@/components/days/Day";
 import ProjectManagement from "@/components/project-management/ProjectManagement";
-import DataFlowTest from "@/components/test/DataFlowTest";
 
 // Import stores
 import { useDayStore } from "@/stores/day";
 import { useProjectStore } from "@/stores/project";
-
-// Import types
-import { Day } from "@/actions/clientActions";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -36,12 +26,11 @@ export default function DashboardPage() {
     loading: dayLoading,
     error: dayError,
     fetchTodayEntry,
-    fetchAllDays,
   } = useDayStore();
 
   const {
     projects,
-    loading: projectLoading,
+    isLoading: projectLoading,
     error: projectError,
     fetchProjects,
   } = useProjectStore();
@@ -53,22 +42,13 @@ export default function DashboardPage() {
   // Fetch data when user session is available
   useEffect(() => {
     if (session?.user?.id && isClient) {
-      // Fetch today's entry
+      // Fetch today's entry (this will automatically create one with default Learnings note if none exists)
       fetchTodayEntry(session.user.id);
-
-      // Fetch recent days
-      fetchAllDays(session.user.id, 7);
 
       // Fetch projects
       fetchProjects(session.user.id);
     }
-  }, [
-    session?.user?.id,
-    isClient,
-    fetchTodayEntry,
-    fetchAllDays,
-    fetchProjects,
-  ]);
+  }, [session?.user?.id, isClient, fetchTodayEntry, fetchProjects]);
 
   // Loading states
   if (status === "loading" || !isClient) {
@@ -108,12 +88,11 @@ export default function DashboardPage() {
   const hasError = dayError || projectError;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-2 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {session?.user?.name || "User"}! Here's your overview.
+            Welcome back, {session?.user?.name || "User"}!
           </p>
         </div>
       </div>
@@ -129,15 +108,14 @@ export default function DashboardPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="test">Test</TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-4">
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+            <div className="lg:col-span-1">
               <DayComponent day={selectedDay} isToday={true} />
             </div>
           </div>
@@ -147,10 +125,6 @@ export default function DashboardPage() {
           <div className="h-[calc(100vh-200px)]">
             <ProjectManagement />
           </div>
-        </TabsContent>
-
-        <TabsContent value="test" className="space-y-4">
-          <DataFlowTest />
         </TabsContent>
       </Tabs>
     </div>

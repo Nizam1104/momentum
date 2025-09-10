@@ -1,7 +1,44 @@
 // actions/clientActions/days.ts
 "use client";
 import { getSupabaseClient } from "@/lib/supabase";
-import { ActionResult, Day } from "./types";
+import {
+  ActionResult,
+  Day,
+  Note,
+  Task,
+  NoteType,
+  TaskStatus,
+  Priority,
+} from "./types";
+import { nanoid } from "nanoid";
+import { getUserId } from "@/utils/shared";
+
+const toDay = (day: any): Day => {
+  return {
+    ...day,
+    date: new Date(day.date),
+    createdAt: new Date(day.createdAt),
+    updatedAt: new Date(day.updatedAt),
+  };
+};
+
+const toNote = (note: any): Note => {
+  return {
+    ...note,
+    createdAt: new Date(note.createdAt),
+    updatedAt: note.updatedAt ? new Date(note.updatedAt) : undefined,
+  };
+};
+
+const toTask = (task: any): Task => {
+  return {
+    ...task,
+    createdAt: new Date(task.createdAt),
+    updatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined,
+    dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+    completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
+  };
+};
 
 export async function getTodayEntry(
   userId: string,
@@ -20,17 +57,85 @@ export async function getTodayEntry(
 
     if (error) {
       if (error.code === "PGRST116") {
-        // No rows found
-        return { success: true, data: null };
+        // No rows found - create a new day entry with default learnings note
+        return await createTodayEntry(userId);
       }
       console.error("Error fetching today entry:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: toDay(data) };
   } catch (error) {
     console.error("Error in getTodayEntry:", error);
     return { success: false, error: "Failed to fetch today entry" };
+  }
+}
+
+export async function createTodayEntry(
+  userId: string,
+): Promise<ActionResult<Day>> {
+  try {
+    const supabase = await getSupabaseClient();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateStr = today.toISOString().split("T")[0];
+
+    // Create the day entry
+    const { data: dayData, error: dayError } = await supabase
+      .from("Day")
+      .insert({
+        id: nanoid(),
+        date: dateStr,
+        userId,
+        isCompleted: false,
+      })
+      .select()
+      .single();
+
+    if (dayError) {
+      console.error("Error creating day entry:", dayError);
+      return { success: false, error: dayError.message };
+    }
+
+    // Create the default "Learnings" note
+    await createDefaultLearningsNote(dayData.id);
+
+    return { success: true, data: toDay(dayData) };
+  } catch (error) {
+    console.error("Error in createTodayEntry:", error);
+    return { success: false, error: "Failed to create today entry" };
+  }
+}
+
+export async function createDefaultLearningsNote(
+  dayId: string,
+): Promise<ActionResult<Note>> {
+  try {
+    const supabase = await getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from("Note")
+      .insert({
+        id: nanoid(),
+        title: "Learnings",
+        content: "What did I learn today?\n\n",
+        type: NoteType.LEARNING,
+        isPinned: true,
+        isArchived: false,
+        dayId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating default learnings note:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: toNote(data) };
+  } catch (error) {
+    console.error("Error in createDefaultLearningsNote:", error);
+    return { success: false, error: "Failed to create default learnings note" };
   }
 }
 
@@ -51,14 +156,13 @@ export async function getDayByDate(
 
     if (error) {
       if (error.code === "PGRST116") {
-        // No rows found
         return { success: true, data: null };
       }
       console.error("Error fetching day by date:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: toDay(data) };
   } catch (error) {
     console.error("Error in getDayByDate:", error);
     return { success: false, error: "Failed to fetch day by date" };
@@ -88,137 +192,239 @@ export async function getAllDays(
       return { success: false, error: error.message };
     }
 
-    return { success: true, data: data || [] };
+    return { success: true, data: data ? data.map(toDay) : [] };
   } catch (error) {
     console.error("Error in getAllDays:", error);
     return { success: false, error: "Failed to fetch days" };
   }
 }
 
-export async function createOrUpdateDay(
-  dayData: Omit<Day, "id" | "createdAt" | "updatedAt">,
-): Promise<ActionResult<Day>> {
+// Notes for a specific day
+export async function getDayNotes(
+  dayId: string,
+): Promise<ActionResult<Note[]>> {
   try {
     const supabase = await getSupabaseClient();
-    const dateStr = new Date(dayData.date).toISOString().split("T")[0];
-
-    // Try to find existing day first
-    const { data: existingDay } = await supabase
-      .from("Day")
+    const { data, error } = await supabase
+      .from("Note")
       .select("*")
-      .eq("userId", dayData.userId)
-      .eq("date", dateStr)
-      .single();
+      .eq("dayId", dayId)
+      .eq("isArchived", false)
+      .order("isPinned", { ascending: false })
+      .order("createdAt", { ascending: false });
 
-    if (existingDay) {
-      // Update existing day
-      const { data, error } = await supabase
-        .from("Day")
-        .update({
-          ...dayData,
-          date: dateStr,
-          updatedAt: new Date().toISOString(),
-        })
-        .eq("id", existingDay.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error updating day:", error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
-    } else {
-      // Create new day
-      const { data, error } = await supabase
-        .from("Day")
-        .insert({
-          ...dayData,
-          date: dateStr,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating day:", error);
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, data };
+    if (error) {
+      console.error("Error fetching day notes:", error);
+      return { success: false, error: error.message };
     }
+
+    return { success: true, data: data ? data.map(toNote) : [] };
   } catch (error) {
-    console.error("Error in createOrUpdateDay:", error);
-    return { success: false, error: "Failed to create or update day" };
+    console.error("Error in getDayNotes:", error);
+    return { success: false, error: "Failed to fetch day notes" };
   }
 }
 
-export async function updateDayMetrics(
+export async function createDayNote(
   dayId: string,
-  metrics: {
-    energyLevel?: number;
-    moodRating?: number;
-    productivityRating?: number;
-    sleepHours?: number;
-    sleepQuality?: number;
-  },
-): Promise<ActionResult<Day>> {
+  noteData: Omit<Note, "id" | "createdAt" | "updatedAt" | "dayId">,
+): Promise<ActionResult<Note>> {
   try {
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
-      .from("Day")
-      .update({
-        ...metrics,
-        updatedAt: new Date().toISOString(),
+      .from("Note")
+      .insert({
+        ...noteData,
+        id: nanoid(),
+        dayId,
       })
-      .eq("id", dayId)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating day metrics:", error);
+      console.error("Error creating day note:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: toNote(data) };
   } catch (error) {
-    console.error("Error in updateDayMetrics:", error);
-    return { success: false, error: "Failed to update day metrics" };
+    console.error("Error in createDayNote:", error);
+    return { success: false, error: "Failed to create day note" };
   }
 }
 
-export async function updateDayReflections(
-  dayId: string,
-  reflections: {
-    highlights?: string;
-    challenges?: string;
-    lessons?: string;
-    gratitude?: string;
-    tomorrowFocus?: string;
-  },
-): Promise<ActionResult<Day>> {
+export async function updateDayNote(
+  noteId: string,
+  updates: Partial<Omit<Note, "id" | "createdAt" | "updatedAt">>,
+): Promise<ActionResult<Note>> {
   try {
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
-      .from("Day")
+      .from("Note")
       .update({
-        ...reflections,
+        ...updates,
         updatedAt: new Date().toISOString(),
       })
-      .eq("id", dayId)
+      .eq("id", noteId)
       .select()
       .single();
 
     if (error) {
-      console.error("Error updating day reflections:", error);
+      console.error("Error updating day note:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: toNote(data) };
   } catch (error) {
-    console.error("Error in updateDayReflections:", error);
-    return { success: false, error: "Failed to update day reflections" };
+    console.error("Error in updateDayNote:", error);
+    return { success: false, error: "Failed to update day note" };
   }
+}
+
+export async function deleteDayNote(
+  noteId: string,
+): Promise<ActionResult<boolean>> {
+  try {
+    const supabase = await getSupabaseClient();
+    const { error } = await supabase.from("Note").delete().eq("id", noteId);
+
+    if (error) {
+      console.error("Error deleting day note:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: true };
+  } catch (error) {
+    console.error("Error in deleteDayNote:", error);
+    return { success: false, error: "Failed to delete day note" };
+  }
+}
+
+// Tasks for a specific day
+export async function getDayTasks(
+  dayId: string,
+): Promise<ActionResult<Task[]>> {
+  console.log(dayId);
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase
+      .from("Task")
+      .select("*")
+      .eq("dayId", dayId)
+      .order("createdAt", { ascending: false });
+
+    console.log("Day tasks fetched:", data);
+
+    if (error) {
+      console.error("Error fetching day tasks:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: data ? data.map(toTask) : [] };
+  } catch (error) {
+    console.error("Error in getDayTasks:", error);
+    return { success: false, error: "Failed to fetch day tasks" };
+  }
+}
+
+export async function createDayTask(
+  dayId: string,
+  taskData: Omit<Task, "id" | "createdAt" | "updatedAt" | "dayId">,
+): Promise<ActionResult<Task>> {
+  try {
+    const supabase = await getSupabaseClient();
+    const userId = await getUserId();
+    console.log("User ID:", userId);
+    console.log("User ID: type", typeof userId);
+    console.log("Task data:", taskData);
+    const { data, error } = await supabase
+      .from("Task")
+      .insert({
+        ...taskData,
+        userId,
+        id: nanoid(),
+        dayId,
+        status: TaskStatus.TODO,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating day task:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: toTask(data) };
+  } catch (error) {
+    console.error("Error in createDayTask:", error);
+    return { success: false, error: "Failed to create day task" };
+  }
+}
+
+export async function updateDayTask(
+  taskId: string,
+  updates: Partial<Omit<Task, "id" | "createdAt" | "updatedAt">>,
+): Promise<ActionResult<Task>> {
+  try {
+    const supabase = await getSupabaseClient();
+    const updateData: any = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (updates.status === TaskStatus.COMPLETED) {
+      updateData.completedAt = new Date().toISOString();
+    } else if (
+      updates.status === TaskStatus.TODO ||
+      updates.status === TaskStatus.IN_PROGRESS ||
+      updates.status === TaskStatus.CANCELLED
+    ) {
+      updateData.completedAt = null;
+    }
+
+    const { data, error } = await supabase
+      .from("Task")
+      .update(updateData)
+      .eq("id", taskId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating day task:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: toTask(data) };
+  } catch (error) {
+    console.error("Error in updateDayTask:", error);
+    return { success: false, error: "Failed to update day task" };
+  }
+}
+
+export async function deleteDayTask(
+  taskId: string,
+): Promise<ActionResult<boolean>> {
+  try {
+    const supabase = await getSupabaseClient();
+    const { error } = await supabase.from("Task").delete().eq("id", taskId);
+
+    if (error) {
+      console.error("Error deleting day task:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: true };
+  } catch (error) {
+    console.error("Error in deleteDayTask:", error);
+    return { success: false, error: "Failed to delete day task" };
+  }
+}
+
+export async function updateDayTaskStatus(
+  taskId: string,
+  status: TaskStatus,
+): Promise<ActionResult<Task>> {
+  return updateDayTask(taskId, { status });
 }
 
 export async function markDayComplete(
@@ -242,84 +448,9 @@ export async function markDayComplete(
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: toDay(data) };
   } catch (error) {
     console.error("Error in markDayComplete:", error);
     return { success: false, error: "Failed to mark day complete" };
-  }
-}
-
-export async function getDaysInRange(
-  userId: string,
-  startDate: Date,
-  endDate: Date,
-): Promise<ActionResult<Day[]>> {
-  try {
-    const supabase = await getSupabaseClient();
-    const { data, error } = await supabase
-      .from("Day")
-      .select("*")
-      .eq("userId", userId)
-      .gte("date", startDate.toISOString().split("T")[0])
-      .lte("date", endDate.toISOString().split("T")[0])
-      .order("date", { ascending: true });
-
-    if (error) {
-      console.error("Error fetching days in range:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error("Error in getDaysInRange:", error);
-    return { success: false, error: "Failed to fetch days in range" };
-  }
-}
-
-export async function getCompletedDays(
-  userId: string,
-  limit?: number,
-): Promise<ActionResult<Day[]>> {
-  try {
-    const supabase = await getSupabaseClient();
-    let query = supabase
-      .from("Day")
-      .select("*")
-      .eq("userId", userId)
-      .eq("isCompleted", true)
-      .order("date", { ascending: false });
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Error fetching completed days:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, data: data || [] };
-  } catch (error) {
-    console.error("Error in getCompletedDays:", error);
-    return { success: false, error: "Failed to fetch completed days" };
-  }
-}
-
-export async function deleteDay(dayId: string): Promise<ActionResult<boolean>> {
-  try {
-    const supabase = await getSupabaseClient();
-    const { error } = await supabase.from("Day").delete().eq("id", dayId);
-
-    if (error) {
-      console.error("Error deleting day:", error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, data: true };
-  } catch (error) {
-    console.error("Error in deleteDay:", error);
-    return { success: false, error: "Failed to delete day" };
   }
 }

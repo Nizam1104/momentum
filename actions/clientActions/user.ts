@@ -2,20 +2,21 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { User } from "./types";
 
 const toUser = (user: any): User => {
-    return {
-        ...user,
-        createdAt: new Date(user.createdAt),
-        updatedAt: user.updatedAt ? new Date(user.updatedAt) : undefined,
-        emailVerified: user.emailVerified ? new Date(user.emailVerified) : undefined,
-    };
+  return {
+    ...user,
+    createdAt: new Date(user.createdAt),
+    updatedAt: user.updatedAt ? new Date(user.updatedAt) : undefined,
+    emailVerified: user.emailVerified
+      ? new Date(user.emailVerified)
+      : undefined,
+  };
 };
 
-export const fetchUser = async function() {
-  console.log('fetch user called')
-  const supabase = await getSupabaseClient()
-  console.log('a')
-  const { data, error } = await supabase.from("User").select('*')
-  console.log(data)
+export const fetchUser = async function () {
+  console.log("fetch user called");
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase.from("User").select("*");
+  console.log("user data", data);
 
   if (error) {
     console.error("Error fetching user:", error);
@@ -23,8 +24,6 @@ export const fetchUser = async function() {
   }
 
   return { success: true, data: data ? data.map(toUser) : [] };
-}
+};
 
-export {
-  fetchUser as _fetchUser
-}
+export { fetchUser as _fetchUser };

@@ -1,14 +1,20 @@
 // src/components/days/DayGoals.tsx
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import GoalItem from "./items/GoalItem";
 
 export default function DayGoals() {
   // MOCK DATA: Replace with actual data
   const goals = [
-    { id: 'goal-1', title: 'Complete project proposal draft' },
-    { id: 'goal-2', title: 'Outline Q4 marketing strategy' },
+    { id: "goal-1", title: "Complete project proposal draft" },
+    { id: "goal-2", title: "Outline Q4 marketing strategy" },
   ];
 
   return (

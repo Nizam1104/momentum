@@ -49,18 +49,18 @@ export interface Note {
 }
 
 export enum ProjectStatus {
-  ACTIVE = 'ACTIVE',
-  ON_HOLD = 'ON_HOLD',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  ARCHIVED = 'ARCHIVED',
+  ACTIVE = "ACTIVE",
+  ON_HOLD = "ON_HOLD",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  ARCHIVED = "ARCHIVED",
 }
 
 export enum Priority {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  URGENT = 'URGENT',
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+  URGENT = "URGENT",
 }
 
 export interface Project {
@@ -81,12 +81,11 @@ export interface Project {
   updatedAt: Date;
 }
 
-
 export enum TaskStatus {
-  TODO = 'TODO',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  TODO = "TODO",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export interface Task {
@@ -115,27 +114,27 @@ export interface TaskCompletion {
 }
 
 export enum GoalType {
-  PERSONAL = 'PERSONAL',
-  PROFESSIONAL = 'PROFESSIONAL',
-  HEALTH = 'HEALTH',
-  FINANCIAL = 'FINANCIAL',
-  LEARNING = 'LEARNING',
-  RELATIONSHIP = 'RELATIONSHIP',
-  CREATIVE = 'CREATIVE',
+  PERSONAL = "PERSONAL",
+  PROFESSIONAL = "PROFESSIONAL",
+  HEALTH = "HEALTH",
+  FINANCIAL = "FINANCIAL",
+  LEARNING = "LEARNING",
+  RELATIONSHIP = "RELATIONSHIP",
+  CREATIVE = "CREATIVE",
 }
 
 export enum GoalStatus {
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  ACTIVE = "ACTIVE",
+  PAUSED = "PAUSED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export enum DailyGoalStatus {
-  NOT_STARTED = 'NOT_STARTED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  SKIPPED = 'SKIPPED',
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  SKIPPED = "SKIPPED",
 }
 
 export interface Goal {
@@ -173,67 +172,12 @@ export interface DailyGoal {
 }
 
 export enum NoteType {
-  GENERAL = 'GENERAL',
-  MEETING = 'MEETING',
-  IDEA = 'IDEA',
-  LEARNING = 'LEARNING',
-  REFLECTION = 'REFLECTION',
-  PLANNING = 'PLANNING',
-}
-
-
-export enum HabitType {
-  GENERAL = 'GENERAL',
-  HEALTH = 'HEALTH',
-  PRODUCTIVITY = 'PRODUCTIVITY',
-  MINDFULNESS = 'MINDFULNESS',
-  LEARNING = 'LEARNING',
-  SOCIAL = 'SOCIAL',
-}
-
-export enum TemplateType {
-  DAILY_CHECKIN = 'DAILY_CHECKIN',
-  PROJECT = 'PROJECT',
-  GOAL = 'GOAL',
-  HABIT = 'HABIT',
-  NOTE = 'NOTE',
-}
-
-export interface Habit {
-  id: string;
-  name: string;
-  description?: string | null;
-  category: HabitType;
-  color: string;
-  targetFrequency: number;
-  isActive: boolean;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface HabitLog {
-  id: string;
-  dayId: string;
-  habitId: string;
-  completed: boolean;
-  count: number;
-  notes?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TimeEntry {
-  id: string;
-  description?: string | null;
-  startTime: Date;
-  endTime?: Date | null;
-  duration?: number | null; // in minutes
-  dayId?: string | null;
-  projectId?: string | null;
-  taskId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  GENERAL = "GENERAL",
+  MEETING = "MEETING",
+  IDEA = "IDEA",
+  LEARNING = "LEARNING",
+  REFLECTION = "REFLECTION",
+  PLANNING = "PLANNING",
 }
 
 export interface Category {
@@ -251,17 +195,6 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Template {
-  id: string;
-  name: string;
-  description?: string | null;
-  type: TemplateType;
-  content: Record<string, any>; // Prisma Json type
   userId: string;
   createdAt: Date;
   updatedAt: Date;

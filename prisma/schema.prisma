@@ -13,7 +13,7 @@ datasource db {
 add customization in notes titles
 add notes type
 */
-        
+
 
 // Core User Model
 model User {
@@ -24,20 +24,18 @@ model User {
   image         String?
   timezone      String    @default("UTC")
   preferences   Json?     @default("{}")
-  
+
   // Relationships
   accounts         Account[]
   sessions         Session[]
   days             Day[]
   projects         Project[]
   categories       Category[]
-  habits           Habit[]
   goals            Goal[]
   tags             Tag[]
-  templates        Template[]
-  achievements     Achievement[]
-  userAchievements UserAchievement[]
-  
+  tasks            Task[]
+  notes             Note[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -49,32 +47,31 @@ model Day {
   id     String   @id @default(cuid())
   date   DateTime @db.Date
   userId String
-  
+
   // Daily metrics and ratings
   energyLevel    Int?     @default(5) // 1-10 scale
   moodRating     Int?     @default(5) // 1-10 scale
   productivityRating Int? @default(5) // 1-10 scale
   sleepHours     Float?
   sleepQuality   Int?     @default(5) // 1-10 scale
-  
+
   // Daily reflection
   highlights     String?  @db.Text
   challenges     String?  @db.Text
   lessons        String?  @db.Text
   gratitude      String?  @db.Text
   tomorrowFocus  String?  @db.Text
-  
+
   // Status
   isCompleted    Boolean  @default(false)
-  
+
   // Relationships
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes          Note[]
+  tasks          Task[]
   dailyGoals     DailyGoal[]
-  habitLogs      HabitLog[]
-  timeEntries    TimeEntry[]
   taskCompletions TaskCompletion[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -89,12 +86,14 @@ model Note {
   title   String?
   content String @db.Text
   type    NoteType @default(GENERAL)
-  
+
   // Metadata
   isPinned   Boolean @default(false)
   isArchived Boolean @default(false)
-  
+
   // Relationships
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   dayId      String?
   day        Day?       @relation(fields: [dayId], references: [id], onDelete: Cascade)
   projectId  String?
@@ -102,7 +101,7 @@ model Note {
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags       NoteTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -130,15 +129,15 @@ model Project {
   color       String        @default("#3B82F6")
   status      ProjectStatus @default(ACTIVE)
   priority    Priority      @default(MEDIUM)
-  
+
   // Timeline
   startDate   DateTime?
   dueDate     DateTime?
   completedAt DateTime?
-  
+
   // Progress tracking
   progress    Int           @default(0) // 0-100
-  
+
   // Relationships
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -147,13 +146,12 @@ model Project {
   parentId    String?
   parent      Project?      @relation("ProjectHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subprojects Project[]     @relation("ProjectHierarchy")
-  
+
   tasks       Task[]
   notes       Note[]
-  timeEntries TimeEntry[]
   goals       Goal[]
   tags        ProjectTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -179,32 +177,36 @@ model Task {
   description String?    @db.Text
   status      TaskStatus @default(TODO)
   priority    Priority   @default(MEDIUM)
-  
+
   // Timeline
   dueDate     DateTime?
   completedAt DateTime?
-  
+
   // Time estimation
   estimatedMinutes Int?
   actualMinutes    Int?
-  
+
   // Relationships
-  projectId   String
-  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dayId       String?
+  day         Day?             @relation(fields: [dayId], references: [id], onDelete: Cascade)
   categoryId  String?
   category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   parentId    String?
   parent      Task?            @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subtasks    Task[]           @relation("TaskHierarchy")
-  
+
   completions TaskCompletion[]
-  timeEntries TimeEntry[]
   tags        TaskTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
   @@index([projectId])
+  @@index([dayId])
   @@index([categoryId])
   @@index([status])
   @@index([dueDate])
@@ -225,10 +227,10 @@ model TaskCompletion {
   day    Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
   taskId String
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
+
   completedAt DateTime @default(now())
   notes       String?  @db.Text
-  
+
   @@unique([dayId, taskId])
   @@index([dayId])
   @@index([taskId])
@@ -243,18 +245,18 @@ model Goal {
   status      GoalStatus @default(ACTIVE)
   priority    Priority   @default(MEDIUM)
   color       String     @default("#10B981")
-  
+
   // Timeline
   startDate   DateTime?
   targetDate  DateTime?
   completedAt DateTime?
-  
+
   // Progress tracking
   isQuantifiable Boolean @default(false)
   targetValue    Float?
   currentValue   Float?  @default(0)
   unit           String?
-  
+
   // Relationships
   userId     String
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -265,10 +267,10 @@ model Goal {
   parentId   String?
   parent     Goal?        @relation("GoalHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subgoals   Goal[]       @relation("GoalHierarchy")
-  
+
   dailyGoals DailyGoal[]
   tags       GoalTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -305,11 +307,11 @@ model DailyGoal {
   day      Day               @relation(fields: [dayId], references: [id], onDelete: Cascade)
   goalId   String
   goal     Goal              @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  
+
   status   DailyGoalStatus   @default(NOT_STARTED)
   progress Float             @default(0) // For quantifiable goals
   notes    String?           @db.Text
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -325,83 +327,7 @@ enum DailyGoalStatus {
   SKIPPED
 }
 
-// Habit Tracking System
-model Habit {
-  id          String      @id @default(cuid())
-  name        String
-  description String?     @db.Text
-  category    HabitType   @default(GENERAL)
-  color       String      @default("#8B5CF6")
-  
-  // Habit configuration
-  targetFrequency Int     @default(1) // per day
-  isActive        Boolean @default(true)
-  
-  // Relationships
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logs      HabitLog[]
-  tags      HabitTag[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@index([userId])
-  @@index([category])
-}
-
-enum HabitType {
-  GENERAL
-  HEALTH
-  PRODUCTIVITY
-  MINDFULNESS
-  LEARNING
-  SOCIAL
-}
-
-model HabitLog {
-  id       String  @id @default(cuid())
-  dayId    String
-  day      Day     @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  habitId  String
-  habit    Habit   @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  
-  completed Boolean @default(false)
-  count     Int     @default(0)
-  notes     String? @db.Text
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@unique([dayId, habitId])
-  @@index([dayId])
-  @@index([habitId])
-}
-
-// Time Tracking System
-model TimeEntry {
-  id          String    @id @default(cuid())
-  description String?   @db.Text
-  startTime   DateTime
-  endTime     DateTime?
-  duration    Int?      // in minutes
-  
-  // Relationships
-  dayId     String?
-  day       Day?      @relation(fields: [dayId], references: [id], onDelete: SetNull)
-  projectId String?
-  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  taskId    String?
-  task      Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@index([dayId])
-  @@index([projectId])
-  @@index([taskId])
-  @@index([startTime])
-}
+// (Removed Habit, HabitLog, HabitType, and TimeEntry models)
 
 // Organization System
 model Category {
@@ -410,15 +336,15 @@ model Category {
   description String? @db.Text
   color       String  @default("#6B7280")
   icon        String?
-  
+
   userId   String
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   projects Project[]
   notes    Note[]
   tasks    Task[]
   goals    Goal[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -431,16 +357,15 @@ model Tag {
   id    String @id @default(cuid())
   name  String
   color String @default("#9CA3AF")
-  
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   notes    NoteTag[]
   projects ProjectTag[]
   tasks    TaskTag[]
   goals    GoalTag[]
-  habits   HabitTag[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 
@@ -493,78 +418,6 @@ model GoalTag {
   @@index([tagId])
 }
 
-model HabitTag {
-  habitId String
-  habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
-  tagId   String
-  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([habitId, tagId])
-  @@index([habitId])
-  @@index([tagId])
-}
-
-// Templates System
-model Template {
-  id          String       @id @default(cuid())
-  name        String
-  description String?      @db.Text
-  type        TemplateType
-  content     Json         // Flexible JSON structure for different template types
-  
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@index([userId])
-  @@index([type])
-}
-
-enum TemplateType {
-  DAILY_CHECKIN
-  PROJECT
-  GOAL
-  HABIT
-  NOTE
-}
-
-// Achievement System
-model Achievement {
-  id          String @id @default(cuid())
-  name        String
-  description String @db.Text
-  icon        String
-  points      Int    @default(0)
-  
-  // Achievement criteria (stored as JSON)
-  criteria Json
-  
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  userAchievements UserAchievement[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@index([userId])
-}
-
-model UserAchievement {
-  id            String      @id @default(cuid())
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievementId String
-  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  
-  earnedAt DateTime @default(now())
-  
-  @@unique([userId, achievementId])
-  @@index([userId])
-  @@index([achievementId])
-}
 
 enum Priority {
   LOW
@@ -574,7 +427,7 @@ enum Priority {
 }
 
 // don't touch the following , as it is schema of auth js
- 
+
 model Account {
   userId            String
   type              String
@@ -587,29 +440,29 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
- 
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   @@id([provider, providerAccountId])
 }
- 
+
 model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@id([identifier, token])
 }

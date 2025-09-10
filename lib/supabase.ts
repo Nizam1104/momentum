@@ -7,7 +7,7 @@ let cachedJWT: string | null = null;
 let jwtExpiry: number | null = null; // Unix timestamp in milliseconds when the JWT expires
 let jwtGenerationPromise: Promise<string> | null = null; // To prevent concurrent calls to generateSupabaseJWT
 
-// The expiry time for the JWT, matching your server-side setting (30 minutes)
+// The expiry time for the JWT, matching your server-side setting (20 minutes)
 const JWT_EXPIRY_DURATION_MS = 20 * 60 * 1000;
 
 /**
@@ -69,6 +69,6 @@ export const getSupabaseClient = async function () {
           Authorization: `Bearer ${supabaseJWT}`,
         },
       },
-    }
+    },
   );
 };

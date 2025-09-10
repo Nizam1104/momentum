@@ -8,8 +8,8 @@ import {
   createTask,
   updateTask as updateTaskAction,
   deleteTask,
-  updateTaskStatus as updateTaskStatusAction
-} from '@/actions/clientActions';
+  updateTaskStatus as updateTaskStatusAction,
+} from "@/actions/clientActions";
 
 // State Interface
 interface TaskState {
@@ -36,11 +36,16 @@ interface TaskState {
   setLoading: (isLoading: boolean) => void;
   setError: (errorMessage: string | null) => void;
   reset: () => void;
-  
+
   // Async Actions with Supabase
   fetchTasksByProject: (projectId: string) => Promise<void>;
-  createTaskAsync: (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateTaskAsync: (taskId: string, updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<void>;
+  createTaskAsync: (
+    taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
+  updateTaskAsync: (
+    taskId: string,
+    updates: Partial<Omit<Task, "id" | "createdAt" | "updatedAt">>,
+  ) => Promise<void>;
   deleteTaskAsync: (taskId: string) => Promise<void>;
   updateTaskStatusAsync: (taskId: string, status: TaskStatus) => Promise<void>;
 }
@@ -59,19 +64,26 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   getTasks: () => get().tasks,
   getTaskById: (id) => get().tasks.find((task) => task.id === id),
   getSelectedTask: () => get().selectedTask,
-  getTasksByProjectId: (projectId) => get().tasks.filter((task) => task.projectId === projectId),
-  getTasksByStatus: (status) => get().tasks.filter((task) => task.status === status),
-  getTasksByCategoryId: (categoryId) => get().tasks.filter((task) => task.categoryId === categoryId),
-  getSubtasks: (parentId) => get().tasks.filter((task) => task.parentId === parentId),
+  getTasksByProjectId: (projectId) =>
+    get().tasks.filter((task) => task.projectId === projectId),
+  getTasksByStatus: (status) =>
+    get().tasks.filter((task) => task.status === status),
+  getTasksByCategoryId: (categoryId) =>
+    get().tasks.filter((task) => task.categoryId === categoryId),
+  getSubtasks: (parentId) =>
+    get().tasks.filter((task) => task.parentId === parentId),
 
   setTasks: (tasks) => set({ tasks }),
   addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
   updateTask: (id, updates) =>
     set((state) => ({
       tasks: state.tasks.map((task) =>
-        task.id === id ? { ...task, ...updates } : task
+        task.id === id ? { ...task, ...updates } : task,
       ),
-      selectedTask: state.selectedTask?.id === id ? { ...state.selectedTask, ...updates } : state.selectedTask,
+      selectedTask:
+        state.selectedTask?.id === id
+          ? { ...state.selectedTask, ...updates }
+          : state.selectedTask,
     })),
   removeTask: (id) =>
     set((state) => ({
@@ -91,10 +103,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       if (result.success && result.data) {
         set({ tasks: result.data, loading: false });
       } else {
-        set({ error: result.error || 'Failed to fetch tasks', loading: false });
+        set({ error: result.error || "Failed to fetch tasks", loading: false });
       }
     } catch (error) {
-      set({ error: 'Failed to fetch tasks', loading: false });
+      set({ error: "Failed to fetch tasks", loading: false });
     }
   },
 
@@ -106,10 +118,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         get().addTask(result.data);
         set({ loading: false });
       } else {
-        set({ error: result.error || 'Failed to create task', loading: false });
+        set({ error: result.error || "Failed to create task", loading: false });
       }
     } catch (error) {
-      set({ error: 'Failed to create task', loading: false });
+      set({ error: "Failed to create task", loading: false });
     }
   },
 
@@ -121,10 +133,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         get().updateTask(taskId, result.data);
         set({ loading: false });
       } else {
-        set({ error: result.error || 'Failed to update task', loading: false });
+        set({ error: result.error || "Failed to update task", loading: false });
       }
     } catch (error) {
-      set({ error: 'Failed to update task', loading: false });
+      set({ error: "Failed to update task", loading: false });
     }
   },
 
@@ -136,10 +148,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         get().removeTask(taskId);
         set({ loading: false });
       } else {
-        set({ error: result.error || 'Failed to delete task', loading: false });
+        set({ error: result.error || "Failed to delete task", loading: false });
       }
     } catch (error) {
-      set({ error: 'Failed to delete task', loading: false });
+      set({ error: "Failed to delete task", loading: false });
     }
   },
 
@@ -151,10 +163,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         get().updateTask(taskId, result.data);
         set({ loading: false });
       } else {
-        set({ error: result.error || 'Failed to update task status', loading: false });
+        set({
+          error: result.error || "Failed to update task status",
+          loading: false,
+        });
       }
     } catch (error) {
-      set({ error: 'Failed to update task status', loading: false });
+      set({ error: "Failed to update task status", loading: false });
     }
   },
 }));
