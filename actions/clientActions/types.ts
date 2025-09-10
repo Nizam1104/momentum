@@ -141,15 +141,9 @@ export interface Note extends BaseEntity {
 export interface Day extends BaseEntity {
   date: Date;
   userId: string;
-  energyLevel?: number;
-  moodRating?: number;
-  productivityRating?: number;
-  sleepHours?: number;
-  sleepQuality?: number;
   highlights?: string;
   challenges?: string;
   lessons?: string;
-  gratitude?: string;
   tomorrowFocus?: string;
   isCompleted: boolean;
 }

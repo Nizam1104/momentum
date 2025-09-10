@@ -285,9 +285,9 @@ export default function DayTasks() {
                 <h4 className="text-sm font-semibold text-muted-foreground">
                   Pending
                 </h4>
-                {pendingTasks.map((task) => (
+                {pendingTasks.map((task, index) => (
                   <TaskItem
-                    key={task.id}
+                    key={`task.id-${index}`}
                     task={task}
                     onToggle={handleToggleTaskStatus}
                     onUpdate={handleUpdateTask}

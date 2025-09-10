@@ -26,8 +26,6 @@ export async function getTasksByProject(
       .eq("projectId", projectId)
       .order("createdAt", { ascending: false });
 
-    console.log("tasks fetched", data);
-
     if (error) {
       console.error("Error fetching tasks:", error);
       return { success: false, error: error.message };
@@ -65,7 +63,6 @@ export async function createTask(
   taskData: Omit<Task, "id" | "createdAt" | "updatedAt">,
 ): Promise<ActionResult<Task>> {
   try {
-    console.log('mnv:: 123')
     const supabase = await getSupabaseClient();
     const userId = await getUserId();
     const { data, error } = await supabase
@@ -74,7 +71,6 @@ export async function createTask(
         ...taskData,
         userId,
         id: nanoid(),
-        dayId: nanoid()
       })
       .select()
       .single();

@@ -14,11 +14,6 @@ export interface Day {
   id: string;
   date: Date; // @db.Date
   userId: string;
-  energyLevel?: number | null;
-  moodRating?: number | null;
-  productivityRating?: number | null;
-  sleepHours?: number | null;
-  sleepQuality?: number | null;
   highlights?: string | null;
   challenges?: string | null;
   lessons?: string | null;
@@ -193,6 +188,72 @@ export interface Tag {
   name: string;
   color: string;
   userId: string;
+  createdAt: Date;
+  updatedAt?: Date | null;
+}
+
+// TimeTable System Types
+export enum TimeSlotCategory {
+  WORK = "WORK",
+  PERSONAL = "PERSONAL",
+  HEALTH = "HEALTH",
+  LEARNING = "LEARNING",
+  BREAK = "BREAK",
+  MEETING = "MEETING",
+  EXERCISE = "EXERCISE",
+  MEAL = "MEAL",
+  COMMUTE = "COMMUTE",
+  OTHER = "OTHER",
+}
+
+export enum TimeSlotStatus {
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  SKIPPED = "SKIPPED",
+  PARTIAL = "PARTIAL",
+}
+
+export interface TimeTable {
+  id: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+  isTemplate: boolean;
+  userId: string;
+  createdAt: Date;
+  updatedAt?: Date | null;
+  timeSlots?: TimeSlot[];
+}
+
+export interface TimeSlot {
+  id: string;
+  title: string;
+  description?: string | null;
+  startTime: string; // "HH:MM" format
+  endTime: string; // "HH:MM" format
+  category: TimeSlotCategory;
+  color: string;
+  priority: Priority;
+  isRecurring: boolean;
+  daysOfWeek: string[]; // ["monday", "tuesday", ...]
+  isActive: boolean;
+  userId: string;
+  timeTableId: string;
+  createdAt: Date;
+  updatedAt?: Date | null;
+  completions?: TimeSlotCompletion[];
+}
+
+export interface TimeSlotCompletion {
+  id: string;
+  dayId: string;
+  timeSlotId: string;
+  status: TimeSlotStatus;
+  startedAt?: Date | null;
+  completedAt?: Date | null;
+  notes?: string | null;
+  actualDuration?: number | null; // in minutes
   createdAt: Date;
   updatedAt?: Date | null;
 }

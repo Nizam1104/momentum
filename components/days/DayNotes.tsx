@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react"; // Import useEffect
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,10 +18,11 @@ import {
   Trash2,
   PlusCircle,
   FileText,
-  BookOpen
+  BookOpen,
 } from "lucide-react";
 import { useDayStore } from "@/stores/day";
-import { NoteType } from "@/actions/clientActions/types";
+import { Note, NoteType } from "@/types/states";
+import { Controller } from "react-hook-form";
 
 export default function DayNotes() {
   const {
@@ -36,75 +37,122 @@ export default function DayNotes() {
 
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  // Local state for the note being edited
+  const [localActiveNote, setLocalActiveNote] = useState<Note | null>(null);
 
   // Set initial active note when notes are loaded
+  // This useMemo runs when notes or activeNoteId changes
   useMemo(() => {
     if (notes.length > 0 && !activeNoteId) {
-      // Prioritize "Learnings" note or the first pinned note
-      const learningsNote = notes.find(note =>
-        note.title === "Learnings" && note.type === NoteType.LEARNING
+      const learningsNote = notes.find(
+        (note) => note.title === "Learnings" && note.type === NoteType.LEARNING,
       );
       const firstNote = learningsNote || notes[0];
       setActiveNoteId(firstNote.id);
     }
   }, [notes, activeNoteId]);
 
+  // Derive the active note from the store's notes array
   const activeNote = useMemo(
     () => notes.find((note) => note.id === activeNoteId),
-    [notes, activeNoteId]
+    [notes, activeNoteId],
   );
+
+  // Sync localActiveNote with activeNote from the store
+  // This ensures local state is updated when a new note is selected,
+  // or when the store's activeNote is updated (e.g., after a save operation).
+  // It also exits edit mode when the active note changes.
+  useEffect(() => {
+    if (activeNote) {
+      // Create a shallow copy to avoid direct mutation of the store's object
+      setLocalActiveNote({ ...activeNote });
+    } else {
+      setLocalActiveNote(null);
+    }
+    // When activeNote changes (e.g., selecting a new note or after saving), exit edit mode
+    setIsEditMode(false);
+  }, [activeNote]);
 
   const handleAddNote = async () => {
     if (!selectedDay) return;
 
+    // Create the note in the DB. Assuming createNoteAsync updates the store
+    // and the new note becomes available in the `notes` array.
     await createNoteAsync(selectedDay.id, {
       title: "New Note",
       content: "",
       type: NoteType.GENERAL,
     });
 
-    // Find the newly created note and set it as active
-    const newNote = notes[0]; // Newly created note should be first
+    // After the store updates, the `useMemo` for `activeNote` and `useEffect` for `localActiveNote`
+    // will automatically pick up the new note if it becomes the first one or is explicitly set.
+    // The current logic relies on `notes[0]` being the new note.
+    const newNote = notes[0];
     if (newNote) {
       setActiveNoteId(newNote.id);
-      setIsEditMode(true);
+      setIsEditMode(true); // Enter edit mode for the new note
     }
   };
 
   const handleSelectNote = (id: string) => {
+    // If there are unsaved changes in localActiveNote and we are in edit mode,
+    // you might want to prompt the user to save or discard here.
+    // For now, switching notes will discard any unsaved local changes.
     setActiveNoteId(id);
-    setIsEditMode(false);
+    // setIsEditMode(false) is handled by the useEffect when activeNote changes
   };
 
   const handleSave = async () => {
-    if (!activeNote) return;
-    setIsEditMode(false);
+    if (!localActiveNote || !activeNoteId) return;
+
+    // Only call update if there are actual changes compared to the store's activeNote
+    // This prevents unnecessary DB writes if nothing has changed.
+    const currentStoreNote = notes.find((note) => note.id === activeNoteId);
+    if (
+      currentStoreNote &&
+      (currentStoreNote.title !== localActiveNote.title ||
+        currentStoreNote.content !== localActiveNote.content)
+    ) {
+      console.log(localActiveNote.contents);
+      await updateNoteAsync(activeNoteId, {
+        title: localActiveNote.title || "",
+        content: localActiveNote.content,
+      });
+    }
+    setIsEditMode(false); // Exit edit mode after saving
   };
 
   const handleDelete = async () => {
     if (!activeNoteId || !activeNote) return;
 
     // Don't allow deletion of the default Learnings note
-    if (activeNote.title === "Learnings" && activeNote.type === NoteType.LEARNING) {
+    if (
+      activeNote.title === "Learnings" &&
+      activeNote.type === NoteType.LEARNING
+    ) {
       return;
     }
 
     await deleteNoteAsync(activeNoteId);
 
     // Select another note after deletion
-    const remainingNotes = notes.filter(n => n.id !== activeNoteId);
+    const remainingNotes = notes.filter((n) => n.id !== activeNoteId);
     if (remainingNotes.length > 0) {
       setActiveNoteId(remainingNotes[0].id);
     } else {
       setActiveNoteId(null);
     }
-    setIsEditMode(false);
+    // setIsEditMode(false) is handled by the useEffect when activeNote changes
   };
 
-  const updateActiveNote = async (field: "title" | "content", value: string) => {
-    if (!activeNoteId) return;
-
-    await updateNoteAsync(activeNoteId, { [field]: value });
+  // This function updates the local state, not the DB directly
+  const updateLocalActiveNote = (field: "title" | "content", value: string) => {
+    if (localActiveNote) {
+      setLocalActiveNote((prev) => {
+        if (!prev) return null;
+        return { ...prev, [field]: value };
+      });
+    }
   };
 
   if (notesLoading) {
@@ -142,6 +190,11 @@ export default function DayNotes() {
     );
   }
 
+  // Determine which note data to display/edit
+  // When in edit mode, use the local state for inputs.
+  // When not in edit mode, use the store's activeNote to show the saved version.
+  const displayNote = isEditMode ? localActiveNote : activeNote;
+
   return (
     <div className="space-y-4">
       {/* Note Navigation Tabs */}
@@ -173,27 +226,32 @@ export default function DayNotes() {
       </div>
 
       {/* Note Content */}
-      {activeNote ? (
+      {displayNote ? (
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center gap-4">
               {isEditMode ? (
                 <Input
-                  value={activeNote.title || ""}
-                  onChange={(e) => updateActiveNote("title", e.target.value)}
+                  value={localActiveNote?.title || ""} // Bind to localActiveNote for editing
+                  onChange={(e) =>
+                    updateLocalActiveNote("title", e.target.value)
+                  }
                   placeholder="Note title"
                   className="text-2xl font-bold p-0 h-auto border-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               ) : (
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    {activeNote.title === "Learnings" && activeNote.type === NoteType.LEARNING && (
-                      <BookOpen className="h-5 w-5 text-blue-500" />
-                    )}
-                    {activeNote.title || "Untitled Note"}
+                    {displayNote.title === "Learnings" && // Use displayNote for read-only title
+                      displayNote.type === NoteType.LEARNING && (
+                        <BookOpen className="h-5 w-5 text-blue-500" />
+                      )}
+                    {displayNote.title || "Untitled Note"}
                   </CardTitle>
                   <CardDescription>
-                    Last updated: {activeNote.updatedAt?.toLocaleString() || activeNote.createdAt.toLocaleString()}
+                    Last updated:{" "}
+                    {displayNote.updatedAt?.toLocaleString() || // Use displayNote for dates
+                      displayNote.createdAt.toLocaleString()}
                   </CardDescription>
                 </div>
               )}
@@ -204,14 +262,25 @@ export default function DayNotes() {
                     Save
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditMode(true)}
+                  >
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
                 )}
                 {/* Don't show delete button for the default Learnings note */}
-                {!(activeNote.title === "Learnings" && activeNote.type === NoteType.LEARNING) && (
-                  <Button variant="destructive" size="sm" onClick={handleDelete}>
+                {!(
+                  displayNote.title === "Learnings" && // Use displayNote for check
+                  displayNote.type === NoteType.LEARNING
+                ) && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
@@ -220,11 +289,27 @@ export default function DayNotes() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose dark:prose-invert max-w-none" data-color-mode="dark">
+            <div
+              className="prose dark:prose-invert max-w-none"
+              data-color-mode="dark"
+              onDoubleClick={() => {
+                if (!isEditMode) {
+                  setIsEditMode(true);
+                }
+              }}
+              onKeyUp={(e) => {
+                if (e.key === "Enter" && e.ctrlKey) {
+                  // Checks if Enter is pressed AND Control is held
+                  handleSave();
+                }
+              }}
+            >
               <MDEditor
-                key={activeNote.id}
-                value={activeNote.content}
-                onChange={(value) => updateActiveNote("content", value || "")}
+                key={displayNote.id} // Key should be stable, use displayNote.id
+                value={displayNote.content} // Bind to displayNote for content
+                onChange={(value) =>
+                  updateLocalActiveNote("content", value || "")
+                }
                 height={400}
                 preview={isEditMode ? "live" : "preview"}
                 hideToolbar={!isEditMode}

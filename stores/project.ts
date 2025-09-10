@@ -1,15 +1,15 @@
-import { create } from 'zustand';
-import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { 
-  Project, 
-  ProjectStatus, 
+import { create } from "zustand";
+import { devtools, subscribeWithSelector } from "zustand/middleware";
+import {
+  Project,
+  ProjectStatus,
   Priority,
   getAllProjects,
   createProject,
   updateProject as updateProjectAction,
   deleteProject,
-  updateProjectProgress as updateProjectProgressAction
-} from '@/actions/clientActions';
+  updateProjectProgress as updateProjectProgressAction,
+} from "@/actions/clientActions";
 
 interface ProjectState {
   // State
@@ -22,8 +22,14 @@ interface ProjectState {
     categoryId?: string;
     searchTerm?: string;
   };
-  isLoading: boolean;
+  initialLoading: boolean; // Only for initial data fetch
   error: string | null;
+
+  // Non-blocking operation states
+  isCreating: boolean;
+  isUpdating: Record<string, boolean>; // Track individual item updates
+  isDeleting: Record<string, boolean>; // Track individual item deletions
+  isProgressUpdating: Record<string, boolean>; // Track individual progress updates
 
   // Actions
   setProjects: (projects: Project[]) => void;
@@ -33,18 +39,39 @@ interface ProjectState {
   removeProject: (projectId: string) => void;
   updateProjectProgress: (projectId: string, progress: number) => void;
   updateProjectStatus: (projectId: string, status: ProjectStatus) => void;
-  
+
   // Async Actions with Supabase
   fetchProjects: (userId: string) => Promise<void>;
-  createProjectAsync: (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'progress'>) => Promise<void>;
-  updateProjectAsync: (projectId: string, updates: Partial<Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'userId'>>) => Promise<void>;
+  createProjectAsync: (
+    projectData: Omit<Project, "id" | "createdAt" | "updatedAt" | "progress">,
+  ) => Promise<void>;
+  updateProjectAsync: (
+    projectId: string,
+    updates: Partial<
+      Omit<Project, "id" | "createdAt" | "updatedAt" | "userId">
+    >,
+  ) => Promise<void>;
   deleteProjectAsync: (projectId: string) => Promise<void>;
-  updateProjectProgressAsync: (projectId: string, progress: number) => Promise<void>;
-  setFilters: (filters: Partial<ProjectState['filters']>) => void;
+  updateProjectProgressAsync: (
+    projectId: string,
+    progress: number,
+  ) => Promise<void>;
+  setFilters: (filters: Partial<ProjectState["filters"]>) => void;
   clearFilters: () => void;
   applyFilters: () => void;
-  setLoading: (loading: boolean) => void;
+  setInitialLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+
+  // Operation state setters
+  setCreating: (isCreating: boolean) => void;
+  setItemUpdating: (projectId: string, isUpdating: boolean) => void;
+  setItemDeleting: (projectId: string, isDeleting: boolean) => void;
+  setProgressUpdating: (projectId: string, isUpdating: boolean) => void;
+
+  // Helper getters for operation states
+  isItemBeingUpdated: (projectId: string) => boolean;
+  isItemBeingDeleted: (projectId: string) => boolean;
+  isProgressBeingUpdated: (projectId: string) => boolean;
 
   // Getters
   getProjectById: (projectId: string) => Project | undefined;
@@ -66,8 +93,12 @@ const initialState = {
   selectedProject: null,
   filteredProjects: [],
   filters: {},
-  isLoading: false,
+  initialLoading: false,
   error: null,
+  isCreating: false,
+  isUpdating: {},
+  isDeleting: {},
+  isProgressUpdating: {},
 };
 
 export const useProjectStore = create<ProjectState>()(
@@ -75,12 +106,17 @@ export const useProjectStore = create<ProjectState>()(
     subscribeWithSelector((set, get) => ({
       ...initialState,
 
+      // Helper getters for operation states
+      isItemBeingUpdated: (projectId) => get().isUpdating[projectId] || false,
+      isItemBeingDeleted: (projectId) => get().isDeleting[projectId] || false,
+      isProgressBeingUpdated: (projectId) =>
+        get().isProgressUpdating[projectId] || false,
+
       // Actions
-      setProjects: (projects) =>
-        set({ projects }, false, 'setProjects'),
+      setProjects: (projects) => set({ projects }, false, "setProjects"),
 
       setSelectedProject: (selectedProject) =>
-        set({ selectedProject }, false, 'setSelectedProject'),
+        set({ selectedProject }, false, "setSelectedProject"),
 
       addProject: (project) =>
         set(
@@ -88,14 +124,14 @@ export const useProjectStore = create<ProjectState>()(
             projects: [...state.projects, project],
           }),
           false,
-          'addProject'
+          "addProject",
         ),
 
       updateProject: (projectId, updates) =>
         set(
           (state) => ({
             projects: state.projects.map((project) =>
-              project.id === projectId ? { ...project, ...updates } : project
+              project.id === projectId ? { ...project, ...updates } : project,
             ),
             selectedProject:
               state.selectedProject?.id === projectId
@@ -103,18 +139,22 @@ export const useProjectStore = create<ProjectState>()(
                 : state.selectedProject,
           }),
           false,
-          'updateProject'
+          "updateProject",
         ),
 
       removeProject: (projectId) =>
         set(
           (state) => ({
-            projects: state.projects.filter((project) => project.id !== projectId),
+            projects: state.projects.filter(
+              (project) => project.id !== projectId,
+            ),
             selectedProject:
-              state.selectedProject?.id === projectId ? null : state.selectedProject,
+              state.selectedProject?.id === projectId
+                ? null
+                : state.selectedProject,
           }),
           false,
-          'removeProject'
+          "removeProject",
         ),
 
       updateProjectProgress: (projectId, progress) =>
@@ -126,9 +166,12 @@ export const useProjectStore = create<ProjectState>()(
                     ...project,
                     progress,
                     completedAt: progress === 100 ? new Date() : undefined,
-                    status: progress === 100 ? ProjectStatus.COMPLETED : project.status,
+                    status:
+                      progress === 100
+                        ? ProjectStatus.COMPLETED
+                        : project.status,
                   }
-                : project
+                : project,
             ),
             selectedProject:
               state.selectedProject?.id === projectId
@@ -136,12 +179,15 @@ export const useProjectStore = create<ProjectState>()(
                     ...state.selectedProject,
                     progress,
                     completedAt: progress === 100 ? new Date() : undefined,
-                    status: progress === 100 ? ProjectStatus.COMPLETED : state.selectedProject.status,
+                    status:
+                      progress === 100
+                        ? ProjectStatus.COMPLETED
+                        : state.selectedProject.status,
                   }
                 : state.selectedProject,
           }),
           false,
-          'updateProjectProgress'
+          "updateProjectProgress",
         ),
 
       updateProjectStatus: (projectId, status) =>
@@ -152,49 +198,66 @@ export const useProjectStore = create<ProjectState>()(
                 ? {
                     ...project,
                     status,
-                    completedAt: status === ProjectStatus.COMPLETED ? new Date() : undefined,
-                    progress: status === ProjectStatus.COMPLETED ? 100 : project.progress,
+                    completedAt:
+                      status === ProjectStatus.COMPLETED
+                        ? new Date()
+                        : undefined,
+                    progress:
+                      status === ProjectStatus.COMPLETED
+                        ? 100
+                        : project.progress,
                   }
-                : project
+                : project,
             ),
             selectedProject:
               state.selectedProject?.id === projectId
                 ? {
                     ...state.selectedProject,
                     status,
-                    completedAt: status === ProjectStatus.COMPLETED ? new Date() : undefined,
-                    progress: status === ProjectStatus.COMPLETED ? 100 : state.selectedProject.progress,
+                    completedAt:
+                      status === ProjectStatus.COMPLETED
+                        ? new Date()
+                        : undefined,
+                    progress:
+                      status === ProjectStatus.COMPLETED
+                        ? 100
+                        : state.selectedProject.progress,
                   }
                 : state.selectedProject,
           }),
           false,
-          'updateProjectStatus'
+          "updateProjectStatus",
         ),
 
       setFilters: (filters) =>
         set(
           (state) => ({ filters: { ...state.filters, ...filters } }),
           false,
-          'setFilters'
+          "setFilters",
         ),
 
-      clearFilters: () =>
-        set({ filters: {} }, false, 'clearFilters'),
+      clearFilters: () => set({ filters: {} }, false, "clearFilters"),
 
       applyFilters: () => {
         const state = get();
         let filtered = [...state.projects];
 
         if (state.filters.status) {
-          filtered = filtered.filter((project) => project.status === state.filters.status);
+          filtered = filtered.filter(
+            (project) => project.status === state.filters.status,
+          );
         }
 
         if (state.filters.priority) {
-          filtered = filtered.filter((project) => project.priority === state.filters.priority);
+          filtered = filtered.filter(
+            (project) => project.priority === state.filters.priority,
+          );
         }
 
         if (state.filters.categoryId) {
-          filtered = filtered.filter((project) => project.categoryId === state.filters.categoryId);
+          filtered = filtered.filter(
+            (project) => project.categoryId === state.filters.categoryId,
+          );
         }
 
         if (state.filters.searchTerm) {
@@ -202,18 +265,41 @@ export const useProjectStore = create<ProjectState>()(
           filtered = filtered.filter(
             (project) =>
               project.name.toLowerCase().includes(searchTerm) ||
-              project.description?.toLowerCase().includes(searchTerm)
+              project.description?.toLowerCase().includes(searchTerm),
           );
         }
 
-        set({ filteredProjects: filtered }, false, 'applyFilters');
+        set({ filteredProjects: filtered }, false, "applyFilters");
       },
 
-      setLoading: (isLoading) =>
-        set({ isLoading }, false, 'setLoading'),
+      setInitialLoading: (initialLoading) =>
+        set({ initialLoading }, false, "setInitialLoading"),
 
-      setError: (error) =>
-        set({ error }, false, 'setError'),
+      setError: (error) => set({ error }, false, "setError"),
+
+      // Operation state setters
+      setCreating: (isCreating) => set({ isCreating }),
+
+      setItemUpdating: (projectId, isUpdating) =>
+        set((state) => ({
+          isUpdating: isUpdating
+            ? { ...state.isUpdating, [projectId]: true }
+            : { ...state.isUpdating, [projectId]: false },
+        })),
+
+      setItemDeleting: (projectId, isDeleting) =>
+        set((state) => ({
+          isDeleting: isDeleting
+            ? { ...state.isDeleting, [projectId]: true }
+            : { ...state.isDeleting, [projectId]: false },
+        })),
+
+      setProgressUpdating: (projectId, isUpdating) =>
+        set((state) => ({
+          isProgressUpdating: isUpdating
+            ? { ...state.isProgressUpdating, [projectId]: true }
+            : { ...state.isProgressUpdating, [projectId]: false },
+        })),
 
       // Getters
       getProjectById: (projectId) => {
@@ -230,7 +316,9 @@ export const useProjectStore = create<ProjectState>()(
         const state = get();
         return state.projects.filter((project) => {
           const matchesStatus = project.status === status;
-          return userId ? matchesStatus && project.userId === userId : matchesStatus;
+          return userId
+            ? matchesStatus && project.userId === userId
+            : matchesStatus;
         });
       },
 
@@ -238,7 +326,9 @@ export const useProjectStore = create<ProjectState>()(
         const state = get();
         return state.projects.filter((project) => {
           const matchesPriority = project.priority === priority;
-          return userId ? matchesPriority && project.userId === userId : matchesPriority;
+          return userId
+            ? matchesPriority && project.userId === userId
+            : matchesPriority;
         });
       },
 
@@ -246,32 +336,40 @@ export const useProjectStore = create<ProjectState>()(
         const state = get();
         return state.projects.filter((project) => {
           const matchesCategory = project.categoryId === categoryId;
-          return userId ? matchesCategory && project.userId === userId : matchesCategory;
+          return userId
+            ? matchesCategory && project.userId === userId
+            : matchesCategory;
         });
       },
 
       getSubprojects: (parentId) => {
         const state = get();
-        return state.projects.filter((project) => project.parentId === parentId);
+        return state.projects.filter(
+          (project) => project.parentId === parentId,
+        );
       },
 
       getOverdueProjects: (userId) => {
         const state = get();
         const now = new Date();
         return state.projects.filter((project) => {
-          const isOverdue = project.dueDate && new Date(project.dueDate) < now && 
-                           project.status !== ProjectStatus.COMPLETED;
+          const isOverdue =
+            project.dueDate &&
+            new Date(project.dueDate) < now &&
+            project.status !== ProjectStatus.COMPLETED;
           return userId ? isOverdue && project.userId === userId : isOverdue;
         });
       },
 
       getProjectsCompletionRate: (userId) => {
         const state = get();
-        const userProjects = state.projects.filter((project) => project.userId === userId);
+        const userProjects = state.projects.filter(
+          (project) => project.userId === userId,
+        );
         if (userProjects.length === 0) return 0;
-        
+
         const completedProjects = userProjects.filter(
-          (project) => project.status === ProjectStatus.COMPLETED
+          (project) => project.status === ProjectStatus.COMPLETED,
         );
         return (completedProjects.length / userProjects.length) * 100;
       },
@@ -286,88 +384,146 @@ export const useProjectStore = create<ProjectState>()(
 
       // Async Actions with Supabase
       fetchProjects: async (userId: string) => {
-        set({ isLoading: true, error: null }, false, 'fetchProjects:start');
+        set(
+          { initialLoading: true, error: null },
+          false,
+          "fetchProjects:start",
+        );
         try {
           const result = await getAllProjects(userId);
           if (result.success && result.data) {
-            set({ projects: result.data, isLoading: false }, false, 'fetchProjects:success');
+            set(
+              { projects: result.data, initialLoading: false },
+              false,
+              "fetchProjects:success",
+            );
             get().applyFilters();
           } else {
-            set({ error: result.error || 'Failed to fetch projects', isLoading: false }, false, 'fetchProjects:error');
+            set(
+              {
+                error: result.error || "Failed to fetch projects",
+                initialLoading: false,
+              },
+              false,
+              "fetchProjects:error",
+            );
           }
         } catch (error) {
-          set({ error: 'Failed to fetch projects', isLoading: false }, false, 'fetchProjects:error');
+          set(
+            { error: "Failed to fetch projects", initialLoading: false },
+            false,
+            "fetchProjects:error",
+          );
         }
       },
 
       createProjectAsync: async (projectData) => {
-        set({ isLoading: true, error: null }, false, 'createProject:start');
+        get().setCreating(true);
+        set({ error: null }, false, "createProject:start");
         try {
           const result = await createProject(projectData);
           if (result.success && result.data) {
             get().addProject(result.data);
-            set({ isLoading: false }, false, 'createProject:success');
             get().applyFilters();
           } else {
-            set({ error: result.error || 'Failed to create project', isLoading: false }, false, 'createProject:error');
+            set(
+              { error: result.error || "Failed to create project" },
+              false,
+              "createProject:error",
+            );
           }
         } catch (error) {
-          set({ error: 'Failed to create project', isLoading: false }, false, 'createProject:error');
+          set(
+            { error: "Failed to create project" },
+            false,
+            "createProject:error",
+          );
+        } finally {
+          get().setCreating(false);
         }
       },
 
       updateProjectAsync: async (projectId, updates) => {
-        set({ isLoading: true, error: null }, false, 'updateProject:start');
+        get().setItemUpdating(projectId, true);
+        set({ error: null }, false, "updateProject:start");
         try {
           const result = await updateProjectAction(projectId, updates);
           if (result.success && result.data) {
             get().updateProject(projectId, result.data);
-            set({ isLoading: false }, false, 'updateProject:success');
             get().applyFilters();
           } else {
-            set({ error: result.error || 'Failed to update project', isLoading: false }, false, 'updateProject:error');
+            set(
+              { error: result.error || "Failed to update project" },
+              false,
+              "updateProject:error",
+            );
           }
         } catch (error) {
-          set({ error: 'Failed to update project', isLoading: false }, false, 'updateProject:error');
+          set(
+            { error: "Failed to update project" },
+            false,
+            "updateProject:error",
+          );
+        } finally {
+          get().setItemUpdating(projectId, false);
         }
       },
 
       deleteProjectAsync: async (projectId) => {
-        set({ isLoading: true, error: null }, false, 'deleteProject:start');
+        get().setItemDeleting(projectId, true);
+        set({ error: null }, false, "deleteProject:start");
         try {
           const result = await deleteProject(projectId);
           if (result.success) {
             get().removeProject(projectId);
-            set({ isLoading: false }, false, 'deleteProject:success');
             get().applyFilters();
           } else {
-            set({ error: result.error || 'Failed to delete project', isLoading: false }, false, 'deleteProject:error');
+            set(
+              { error: result.error || "Failed to delete project" },
+              false,
+              "deleteProject:error",
+            );
           }
         } catch (error) {
-          set({ error: 'Failed to delete project', isLoading: false }, false, 'deleteProject:error');
+          set(
+            { error: "Failed to delete project" },
+            false,
+            "deleteProject:error",
+          );
+        } finally {
+          get().setItemDeleting(projectId, false);
         }
       },
 
       updateProjectProgressAsync: async (projectId, progress) => {
-        set({ isLoading: true, error: null }, false, 'updateProjectProgress:start');
+        get().setProgressUpdating(projectId, true);
+        set({ error: null }, false, "updateProjectProgress:start");
         try {
           const result = await updateProjectProgressAction(projectId, progress);
           if (result.success && result.data) {
             get().updateProject(projectId, result.data);
-            set({ isLoading: false }, false, 'updateProjectProgress:success');
             get().applyFilters();
           } else {
-            set({ error: result.error || 'Failed to update project progress', isLoading: false }, false, 'updateProjectProgress:error');
+            set(
+              { error: result.error || "Failed to update project progress" },
+              false,
+              "updateProjectProgress:error",
+            );
           }
         } catch (error) {
-          set({ error: 'Failed to update project progress', isLoading: false }, false, 'updateProjectProgress:error');
+          set(
+            { error: "Failed to update project progress" },
+            false,
+            "updateProjectProgress:error",
+          );
+        } finally {
+          get().setProgressUpdating(projectId, false);
         }
       },
 
       // Reset
-      reset: () =>
-        set({ ...initialState }, false, 'reset'),
+      reset: () => set({ ...initialState }, false, "reset"),
     })),
-    { name: 'project-store' }
-  )
+    { name: "project-store" },
+  ),
 );

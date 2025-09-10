@@ -6,8 +6,13 @@ import { Note, NoteType } from "@/types/states";
 interface NoteState {
   notes: Note[];
   selectedNote: Note | null;
-  loading: boolean;
+  initialLoading: boolean; // Only for initial data fetch
   error: string | null;
+
+  // Non-blocking operation states
+  isCreating: boolean;
+  isUpdating: Record<string, boolean>; // Track individual item updates
+  isDeleting: Record<string, boolean>; // Track individual item deletions
 
   // Getters (Selectors)
   getNotes: () => Note[];
@@ -19,6 +24,8 @@ interface NoteState {
   getNotesByType: (type: NoteType) => Note[];
   getPinnedNotes: () => Note[];
   getArchivedNotes: () => Note[];
+  isItemUpdating: (id: string) => boolean;
+  isItemDeleting: (id: string) => boolean;
 
   // Setters (Actions)
   setNotes: (notes: Note[]) => void;
@@ -26,16 +33,22 @@ interface NoteState {
   updateNote: (id: string, updates: Partial<Note>) => void;
   removeNote: (id: string) => void;
   setSelectedNote: (note: Note | null) => void;
-  setLoading: (isLoading: boolean) => void;
+  setInitialLoading: (isLoading: boolean) => void;
   setError: (errorMessage: string | null) => void;
+  setCreating: (isCreating: boolean) => void;
+  setItemUpdating: (id: string, isUpdating: boolean) => void;
+  setItemDeleting: (id: string, isDeleting: boolean) => void;
   reset: () => void;
 }
 
 const initialState = {
   notes: [],
   selectedNote: null,
-  loading: false,
+  initialLoading: false,
   error: null,
+  isCreating: false,
+  isUpdating: {},
+  isDeleting: {},
 };
 
 // Create Store
@@ -55,6 +68,8 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   getPinnedNotes: () =>
     get().notes.filter((note) => note.isPinned && !note.isArchived),
   getArchivedNotes: () => get().notes.filter((note) => note.isArchived),
+  isItemUpdating: (id) => get().isUpdating[id] || false,
+  isItemDeleting: (id) => get().isDeleting[id] || false,
 
   setNotes: (notes) => set({ notes }),
   addNote: (note) => set((state) => ({ notes: [...state.notes, note] })),
@@ -74,7 +89,20 @@ export const useNoteStore = create<NoteState>((set, get) => ({
       selectedNote: state.selectedNote?.id === id ? null : state.selectedNote,
     })),
   setSelectedNote: (note) => set({ selectedNote: note }),
-  setLoading: (isLoading) => set({ loading: isLoading }),
+  setInitialLoading: (initialLoading) => set({ initialLoading }),
   setError: (errorMessage) => set({ error: errorMessage }),
+  setCreating: (isCreating) => set({ isCreating }),
+  setItemUpdating: (id, isUpdating) =>
+    set((state) => ({
+      isUpdating: isUpdating
+        ? { ...state.isUpdating, [id]: true }
+        : { ...state.isUpdating, [id]: false },
+    })),
+  setItemDeleting: (id, isDeleting) =>
+    set((state) => ({
+      isDeleting: isDeleting
+        ? { ...state.isDeleting, [id]: true }
+        : { ...state.isDeleting, [id]: false },
+    })),
   reset: () => set(initialState),
 }));

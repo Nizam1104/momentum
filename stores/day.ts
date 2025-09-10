@@ -32,15 +32,31 @@ interface DayState {
   // Tasks data
   tasks: Task[];
 
-  // Loading states
-  loading: boolean;
-  notesLoading: boolean;
-  tasksLoading: boolean;
+  // Loading states - only for initial data fetching
+  initialLoading: boolean; // For fetching today's entry or all days
+  notesInitialLoading: boolean; // Only for initial notes fetch
+  tasksInitialLoading: boolean; // Only for initial tasks fetch
+
+  // Non-blocking operation states
+  isDayUpdating: Record<string, boolean>; // Track individual day updates
+  isNoteCreating: boolean;
+  isNoteUpdating: Record<string, boolean>; // Track individual note updates
+  isNoteDeleting: Record<string, boolean>; // Track individual note deletions
+  isTaskCreating: boolean;
+  isTaskUpdating: Record<string, boolean>; // Track individual task updates
+  isTaskDeleting: Record<string, boolean>; // Track individual task deletions
 
   // Error states
   error: string | null;
   notesError: string | null;
   tasksError: string | null;
+
+  // Helper getters for operation states
+  isDayBeingUpdated: (dayId: string) => boolean;
+  isNoteBeingUpdated: (noteId: string) => boolean;
+  isNoteBeingDeleted: (noteId: string) => boolean;
+  isTaskBeingUpdated: (taskId: string) => boolean;
+  isTaskBeingDeleted: (taskId: string) => boolean;
 
   // Day actions
   fetchTodayEntry: (userId: string) => Promise<void>;
@@ -79,8 +95,15 @@ interface DayState {
   updateTaskStatusAsync: (taskId: string, status: TaskStatus) => Promise<void>;
 
   // Utility actions
-  setLoading: (isLoading: boolean) => void;
+  setInitialLoading: (isLoading: boolean) => void;
   setError: (errorMessage: string | null) => void;
+  setDayUpdating: (dayId: string, isUpdating: boolean) => void;
+  setNoteCreating: (isCreating: boolean) => void;
+  setNoteUpdating: (noteId: string, isUpdating: boolean) => void;
+  setNoteDeleting: (noteId: string, isDeleting: boolean) => void;
+  setTaskCreating: (isCreating: boolean) => void;
+  setTaskUpdating: (taskId: string, isUpdating: boolean) => void;
+  setTaskDeleting: (taskId: string, isDeleting: boolean) => void;
   reset: () => void;
 }
 
@@ -89,9 +112,16 @@ const initialState = {
   days: [],
   notes: [],
   tasks: [],
-  loading: false,
-  notesLoading: false,
-  tasksLoading: false,
+  initialLoading: false,
+  notesInitialLoading: false,
+  tasksInitialLoading: false,
+  isDayUpdating: {},
+  isNoteCreating: false,
+  isNoteUpdating: {},
+  isNoteDeleting: {},
+  isTaskCreating: false,
+  isTaskUpdating: {},
+  isTaskDeleting: {},
   error: null,
   notesError: null,
   tasksError: null,
@@ -100,18 +130,24 @@ const initialState = {
 export const useDayStore = create<DayState>((set, get) => ({
   ...initialState,
 
+  // Helper getters
+  isDayBeingUpdated: (dayId) => get().isDayUpdating[dayId] || false,
+  isNoteBeingUpdated: (noteId) => get().isNoteUpdating[noteId] || false,
+  isNoteBeingDeleted: (noteId) => get().isNoteDeleting[noteId] || false,
+  isTaskBeingUpdated: (taskId) => get().isTaskUpdating[taskId] || false,
+  isTaskBeingDeleted: (taskId) => get().isTaskDeleting[taskId] || false,
+
   // Day actions
   fetchTodayEntry: async (userId: string) => {
-    set({ loading: true, error: null });
+    set({ initialLoading: true, error: null });
     try {
       const result = await getTodayEntry(userId);
-      console.log("res day", result);
       if (result.success && result.data) {
-        set({ selectedDay: result.data, loading: false });
+        set({ selectedDay: result.data, initialLoading: false });
 
-        // Automatically fetch notes and tasks for today
-        await get().fetchDayNotes(result.data.id);
-        await get().fetchDayTasks(result.data.id);
+        // Automatically fetch notes and tasks for today (non-blocking)
+        get().fetchDayNotes(result.data.id);
+        get().fetchDayTasks(result.data.id);
 
         // Add to days list if not already present
         const existingDay = get().days.find((d) => d.id === result.data!.id);
@@ -121,39 +157,43 @@ export const useDayStore = create<DayState>((set, get) => ({
       } else {
         set({
           error: result.error || "Failed to fetch today entry",
-          loading: false,
+          initialLoading: false,
         });
       }
     } catch (error) {
-      set({ error: "Failed to fetch today entry", loading: false });
+      set({ error: "Failed to fetch today entry", initialLoading: false });
     }
   },
 
   fetchAllDays: async (userId: string, limit?: number) => {
-    set({ loading: true, error: null });
+    set({ initialLoading: true, error: null });
     try {
       const result = await getAllDays(userId, limit);
       if (result.success && result.data) {
-        set({ days: result.data, loading: false });
+        set({ days: result.data, initialLoading: false });
       } else {
-        set({ error: result.error || "Failed to fetch days", loading: false });
+        set({
+          error: result.error || "Failed to fetch days",
+          initialLoading: false,
+        });
       }
     } catch (error) {
-      set({ error: "Failed to fetch days", loading: false });
+      set({ error: "Failed to fetch days", initialLoading: false });
     }
   },
 
   setSelectedDay: (day: Day | null) => {
     set({ selectedDay: day });
     if (day) {
-      // Fetch notes and tasks for the selected day
+      // Fetch notes and tasks for the selected day (non-blocking)
       get().fetchDayNotes(day.id);
       get().fetchDayTasks(day.id);
     }
   },
 
   markDayCompleteAsync: async (dayId: string, isCompleted: boolean) => {
-    set({ loading: true, error: null });
+    get().setDayUpdating(dayId, true);
+    set({ error: null });
     try {
       const result = await markDayComplete(dayId, isCompleted);
       if (result.success && result.data) {
@@ -162,39 +202,40 @@ export const useDayStore = create<DayState>((set, get) => ({
           days: state.days.map((d) => (d.id === dayId ? result.data! : d)),
           selectedDay:
             state.selectedDay?.id === dayId ? result.data! : state.selectedDay,
-          loading: false,
         }));
       } else {
         set({
           error: result.error || "Failed to mark day complete",
-          loading: false,
         });
       }
     } catch (error) {
-      set({ error: "Failed to mark day complete", loading: false });
+      set({ error: "Failed to mark day complete" });
+    } finally {
+      get().setDayUpdating(dayId, false);
     }
   },
 
   // Note actions
   fetchDayNotes: async (dayId: string) => {
-    set({ notesLoading: true, notesError: null });
+    set({ notesInitialLoading: true, notesError: null });
     try {
       const result = await getDayNotes(dayId);
       if (result.success && result.data) {
-        set({ notes: result.data, notesLoading: false });
+        set({ notes: result.data, notesInitialLoading: false });
       } else {
         set({
           notesError: result.error || "Failed to fetch notes",
-          notesLoading: false,
+          notesInitialLoading: false,
         });
       }
     } catch (error) {
-      set({ notesError: "Failed to fetch notes", notesLoading: false });
+      set({ notesError: "Failed to fetch notes", notesInitialLoading: false });
     }
   },
 
   createNoteAsync: async (dayId: string, noteData) => {
-    set({ notesLoading: true, notesError: null });
+    get().setNoteCreating(true);
+    set({ notesError: null });
     try {
       const result = await createDayNote(dayId, {
         title: noteData.title || "",
@@ -207,79 +248,82 @@ export const useDayStore = create<DayState>((set, get) => ({
       if (result.success && result.data) {
         set((state) => ({
           notes: [result.data!, ...state.notes],
-          notesLoading: false,
         }));
       } else {
         set({
           notesError: result.error || "Failed to create note",
-          notesLoading: false,
         });
       }
     } catch (error) {
-      set({ notesError: "Failed to create note", notesLoading: false });
+      set({ notesError: "Failed to create note" });
+    } finally {
+      get().setNoteCreating(false);
     }
   },
 
   updateNoteAsync: async (noteId: string, updates) => {
-    set({ notesLoading: true, notesError: null });
+    get().setNoteUpdating(noteId, true);
+    set({ notesError: null });
     try {
       const result = await updateDayNote(noteId, updates);
       if (result.success && result.data) {
         set((state) => ({
           notes: state.notes.map((n) => (n.id === noteId ? result.data! : n)),
-          notesLoading: false,
         }));
       } else {
         set({
           notesError: result.error || "Failed to update note",
-          notesLoading: false,
         });
       }
     } catch (error) {
-      set({ notesError: "Failed to update note", notesLoading: false });
+      set({ notesError: "Failed to update note" });
+    } finally {
+      get().setNoteUpdating(noteId, false);
     }
   },
 
   deleteNoteAsync: async (noteId: string) => {
-    set({ notesLoading: true, notesError: null });
+    get().setNoteDeleting(noteId, true);
+    set({ notesError: null });
     try {
       const result = await deleteDayNote(noteId);
       if (result.success) {
         set((state) => ({
           notes: state.notes.filter((n) => n.id !== noteId),
-          notesLoading: false,
         }));
       } else {
         set({
           notesError: result.error || "Failed to delete note",
-          notesLoading: false,
         });
       }
     } catch (error) {
-      set({ notesError: "Failed to delete note", notesLoading: false });
+      set({ notesError: "Failed to delete note" });
+    } finally {
+      get().setNoteDeleting(noteId, false);
     }
   },
 
   // Task actions
   fetchDayTasks: async (dayId: string) => {
-    set({ tasksLoading: true, tasksError: null });
+    set({ tasksInitialLoading: true, tasksError: null });
     try {
       const result = await getDayTasks(dayId);
       if (result.success && result.data) {
-        set({ tasks: result.data, tasksLoading: false });
+        set({ tasks: result.data, tasksInitialLoading: false });
       } else {
         set({
           tasksError: result.error || "Failed to fetch tasks",
-          tasksLoading: false,
+          tasksInitialLoading: false,
         });
       }
     } catch (error) {
-      set({ tasksError: "Failed to fetch tasks", tasksLoading: false });
+      set({ tasksError: "Failed to fetch tasks", tasksInitialLoading: false });
     }
   },
 
   createTaskAsync: async (dayId: string, taskData) => {
-    set({ tasksLoading: true, tasksError: null });
+    get().setTaskCreating(true);
+    set({ tasksError: null });
     try {
       const result = await createDayTask(dayId, {
         title: taskData.title,
@@ -291,81 +335,124 @@ export const useDayStore = create<DayState>((set, get) => ({
       if (result.success && result.data) {
         set((state) => ({
           tasks: [result.data!, ...state.tasks],
-          tasksLoading: false,
         }));
       } else {
         set({
           tasksError: result.error || "Failed to create task",
-          tasksLoading: false,
         });
       }
     } catch (error) {
-      set({ tasksError: "Failed to create task", tasksLoading: false });
+      set({ tasksError: "Failed to create task" });
+    } finally {
+      get().setTaskCreating(false);
     }
   },
 
   updateTaskAsync: async (taskId: string, updates) => {
-    set({ tasksLoading: true, tasksError: null });
+    get().setTaskUpdating(taskId, true);
+    set({ tasksError: null });
     try {
       const result = await updateDayTask(taskId, updates);
       if (result.success && result.data) {
         set((state) => ({
           tasks: state.tasks.map((t) => (t.id === taskId ? result.data! : t)),
-          tasksLoading: false,
         }));
       } else {
         set({
           tasksError: result.error || "Failed to update task",
-          tasksLoading: false,
         });
       }
     } catch (error) {
-      set({ tasksError: "Failed to update task", tasksLoading: false });
+      set({ tasksError: "Failed to update task" });
+    } finally {
+      get().setTaskUpdating(taskId, false);
     }
   },
 
   deleteTaskAsync: async (taskId: string) => {
-    set({ tasksLoading: true, tasksError: null });
+    get().setTaskDeleting(taskId, true);
+    set({ tasksError: null });
     try {
       const result = await deleteDayTask(taskId);
       if (result.success) {
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== taskId),
-          tasksLoading: false,
         }));
       } else {
         set({
           tasksError: result.error || "Failed to delete task",
-          tasksLoading: false,
         });
       }
     } catch (error) {
-      set({ tasksError: "Failed to delete task", tasksLoading: false });
+      set({ tasksError: "Failed to delete task" });
+    } finally {
+      get().setTaskDeleting(taskId, false);
     }
   },
 
   updateTaskStatusAsync: async (taskId: string, status: TaskStatus) => {
-    set({ tasksLoading: true, tasksError: null });
+    get().setTaskUpdating(taskId, true);
+    set({ tasksError: null });
     try {
       const result = await updateDayTaskStatus(taskId, status);
       if (result.success && result.data) {
         set((state) => ({
           tasks: state.tasks.map((t) => (t.id === taskId ? result.data! : t)),
-          tasksLoading: false,
         }));
       } else {
         set({
           tasksError: result.error || "Failed to update task status",
-          tasksLoading: false,
         });
       }
     } catch (error) {
-      set({ tasksError: "Failed to update task status", tasksLoading: false });
+      set({ tasksError: "Failed to update task status" });
+    } finally {
+      get().setTaskUpdating(taskId, false);
     }
   },
 
   // Utility actions
-  setLoading: (isLoading: boolean) => set({ loading: isLoading }),
+  setInitialLoading: (isLoading: boolean) => set({ initialLoading: isLoading }),
   setError: (errorMessage: string | null) => set({ error: errorMessage }),
+
+  setDayUpdating: (dayId: string, isUpdating: boolean) =>
+    set((state) => ({
+      isDayUpdating: isUpdating
+        ? { ...state.isDayUpdating, [dayId]: true }
+        : { ...state.isDayUpdating, [dayId]: false },
+    })),
+
+  setNoteCreating: (isCreating: boolean) => set({ isNoteCreating: isCreating }),
+
+  setNoteUpdating: (noteId: string, isUpdating: boolean) =>
+    set((state) => ({
+      isNoteUpdating: isUpdating
+        ? { ...state.isNoteUpdating, [noteId]: true }
+        : { ...state.isNoteUpdating, [noteId]: false },
+    })),
+
+  setNoteDeleting: (noteId: string, isDeleting: boolean) =>
+    set((state) => ({
+      isNoteDeleting: isDeleting
+        ? { ...state.isNoteDeleting, [noteId]: true }
+        : { ...state.isNoteDeleting, [noteId]: false },
+    })),
+
+  setTaskCreating: (isCreating: boolean) => set({ isTaskCreating: isCreating }),
+
+  setTaskUpdating: (taskId: string, isUpdating: boolean) =>
+    set((state) => ({
+      isTaskUpdating: isUpdating
+        ? { ...state.isTaskUpdating, [taskId]: true }
+        : { ...state.isTaskUpdating, [taskId]: false },
+    })),
+
+  setTaskDeleting: (taskId: string, isDeleting: boolean) =>
+    set((state) => ({
+      isTaskDeleting: isDeleting
+        ? { ...state.isTaskDeleting, [taskId]: true }
+        : { ...state.isTaskDeleting, [taskId]: false },
+    })),
+
   reset: () => set(initialState),
 }));

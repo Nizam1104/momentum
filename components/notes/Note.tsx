@@ -26,7 +26,8 @@ const initialNotes: Note[] = [
   {
     id: "note-1",
     title: "My First Note",
-    content: "This is a **preview** of the note content. Click 'Edit' to change it.",
+    content:
+      "This is a **preview** of the note content. Click 'Edit' to change it.",
     lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
   },
   {
@@ -40,14 +41,14 @@ const initialNotes: Note[] = [
 export default function MultiNoteManager() {
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(
-    initialNotes.length > 0 ? initialNotes[0].id : null
+    initialNotes.length > 0 ? initialNotes[0].id : null,
   );
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Memoize the active note to avoid re-finding it on every render
   const activeNote = useMemo(
     () => notes.find((note) => note.id === activeNoteId),
-    [notes, activeNoteId]
+    [notes, activeNoteId],
   );
 
   const handleAddNote = () => {
@@ -72,7 +73,7 @@ export default function MultiNoteManager() {
 
     // Update the lastUpdated timestamp on save
     const updatedNotes = notes.map((note) =>
-      note.id === activeNoteId ? { ...note, lastUpdated: new Date() } : note
+      note.id === activeNoteId ? { ...note, lastUpdated: new Date() } : note,
     );
     setNotes(updatedNotes);
     setIsEditMode(false);
@@ -102,7 +103,7 @@ export default function MultiNoteManager() {
   const updateActiveNote = (field: "title" | "content", value: string) => {
     if (!activeNoteId) return;
     const updatedNotes = notes.map((note) =>
-      note.id === activeNoteId ? { ...note, [field]: value } : note
+      note.id === activeNoteId ? { ...note, [field]: value } : note,
     );
     setNotes(updatedNotes);
   };
@@ -122,7 +123,12 @@ export default function MultiNoteManager() {
             {note.title}
           </Button>
         ))}
-        <Button variant="outline" size="sm" onClick={handleAddNote} className="ml-auto h-8">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleAddNote}
+          className="ml-auto h-8"
+        >
           <PlusCircle className="h-4 w-4 mr-2" />
           New Note
         </Button>
@@ -155,7 +161,11 @@ export default function MultiNoteManager() {
                     Save
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditMode(true)}
+                  >
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
@@ -168,7 +178,10 @@ export default function MultiNoteManager() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose dark:prose-invert max-w-none" data-color-mode="dark">
+            <div
+              className="prose dark:prose-invert max-w-none"
+              data-color-mode="dark"
+            >
               <MDEditor
                 key={activeNote.id} // Important: Use key to force re-mount on note switch
                 value={activeNote.content}

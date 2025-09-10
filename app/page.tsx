@@ -2,7 +2,12 @@
 "use client";
 import React from "react";
 import { FloatingNav } from "@/components/ui/floating-navbar";
-import { IconHome, IconListDetails, IconRocket, IconUsersGroup } from "@tabler/icons-react";
+import {
+  IconHome,
+  IconListDetails,
+  IconRocket,
+  IconUsersGroup,
+} from "@tabler/icons-react";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
@@ -20,7 +25,9 @@ export default function Home() {
     {
       name: "Features",
       link: "#features",
-      icon: <IconListDetails className="h-4 w-4 text-neutral-500 dark:text-white" />,
+      icon: (
+        <IconListDetails className="h-4 w-4 text-neutral-500 dark:text-white" />
+      ),
     },
     {
       name: "How it Works",
@@ -30,7 +37,9 @@ export default function Home() {
     {
       name: "Testimonials",
       link: "#testimonials",
-      icon: <IconUsersGroup className="h-4 w-4 text-neutral-500 dark:text-white" />,
+      icon: (
+        <IconUsersGroup className="h-4 w-4 text-neutral-500 dark:text-white" />
+      ),
     },
   ];
 

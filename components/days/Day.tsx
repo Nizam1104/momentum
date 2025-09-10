@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { CheckCircle2, CalendarDays } from "lucide-react";
 import DayNotes from "./DayNotes";
+import MultiNoteManager from "@/components/notes/Note";
 import DayTasks from "./DayTasks";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,16 +87,17 @@ export default function DayComponent({
           )}
         </AccordionTrigger>
         <AccordionContent className="pt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-8">
             {/* Notes Section - Takes up 2/3 of the width */}
-            <div className="lg:col-span-2">
+            <div className="col-span-1" />
+            <div className="col-span-6">
               <DayNotes />
-            </div>
-
-            {/* Tasks Section - Takes up 1/3 of the width */}
-            <div className="lg:col-span-1">
               <DayTasks />
             </div>
+            <div className="col-span-1" />
+
+            {/* Tasks Section - Takes up 1/3 of the width */}
+            {/*<div className="lg:col-span-1"></div>*/}
           </div>
         </AccordionContent>
       </AccordionItem>
