@@ -31,9 +31,12 @@ export interface Note {
   type: NoteType;
   isPinned: boolean;
   isArchived: boolean;
+  userId?: string | null;
   dayId?: string | null;
   projectId?: string | null;
   categoryId?: string | null;
+  topicId?: string | null;
+  conceptId?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
 }
@@ -192,68 +195,64 @@ export interface Tag {
   updatedAt?: Date | null;
 }
 
-// TimeTable System Types
-export enum TimeSlotCategory {
-  WORK = "WORK",
-  PERSONAL = "PERSONAL",
-  HEALTH = "HEALTH",
-  LEARNING = "LEARNING",
-  BREAK = "BREAK",
-  MEETING = "MEETING",
-  EXERCISE = "EXERCISE",
-  MEAL = "MEAL",
-  COMMUTE = "COMMUTE",
-  OTHER = "OTHER",
+// Learning Management System Types
+export enum LearningTopicStatus {
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+  ON_HOLD = "ON_HOLD",
+  CANCELLED = "CANCELLED",
 }
 
-export enum TimeSlotStatus {
+export enum LearningConceptStatus {
   NOT_STARTED = "NOT_STARTED",
   IN_PROGRESS = "IN_PROGRESS",
+  REVIEW = "REVIEW",
   COMPLETED = "COMPLETED",
-  SKIPPED = "SKIPPED",
-  PARTIAL = "PARTIAL",
+  MASTERED = "MASTERED",
 }
 
-export interface TimeTable {
-  id: string;
-  name: string;
-  description?: string | null;
-  isActive: boolean;
-  isTemplate: boolean;
-  userId: string;
-  createdAt: Date;
-  updatedAt?: Date | null;
-  timeSlots?: TimeSlot[];
+export interface LearningResource {
+  title: string;
+  url: string;
+  type: "article" | "video" | "book" | "course" | "documentation" | "other";
+  description?: string;
 }
 
-export interface TimeSlot {
+export interface LearningTopic {
   id: string;
   title: string;
   description?: string | null;
-  startTime: string; // "HH:MM" format
-  endTime: string; // "HH:MM" format
-  category: TimeSlotCategory;
   color: string;
   priority: Priority;
-  isRecurring: boolean;
-  daysOfWeek: string[]; // ["monday", "tuesday", ...]
-  isActive: boolean;
+  status: LearningTopicStatus;
+  estimatedHours?: number | null;
+  actualHours?: number | null;
+  progress: number; // 0-100
+  startDate?: Date | null;
+  targetDate?: Date | null;
+  completedAt?: Date | null;
   userId: string;
-  timeTableId: string;
+  categoryId?: string | null;
   createdAt: Date;
   updatedAt?: Date | null;
-  completions?: TimeSlotCompletion[];
+  concepts?: LearningConcept[];
 }
 
-export interface TimeSlotCompletion {
+export interface LearningConcept {
   id: string;
-  dayId: string;
-  timeSlotId: string;
-  status: TimeSlotStatus;
-  startedAt?: Date | null;
+  title: string;
+  description?: string | null;
+  content?: string | null;
+  resources?: LearningResource[];
+  notes?: Note[];
+  status: LearningConceptStatus;
+  priority: Priority;
+  understandingLevel: number; // 1-5 scale
+  timeSpent?: number | null; // in hours
+  startDate?: Date | null;
   completedAt?: Date | null;
-  notes?: string | null;
-  actualDuration?: number | null; // in minutes
+  userId: string;
+  topicId: string;
   createdAt: Date;
   updatedAt?: Date | null;
 }

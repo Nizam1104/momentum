@@ -35,6 +35,8 @@ model User {
   tags             Tag[]
   tasks            Task[]
   notes             Note[]
+  learningTopics   LearningTopic[]
+  learningConcepts LearningConcept[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -101,6 +103,10 @@ model Note {
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   tags       NoteTag[]
+  topicId    String?
+  topic      LearningTopic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  conceptId  String?
+  concept    LearningConcept? @relation(fields: [conceptId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -344,6 +350,7 @@ model Category {
   notes    Note[]
   tasks    Task[]
   goals    Goal[]
+  learningTopics LearningTopic[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -365,6 +372,8 @@ model Tag {
   projects ProjectTag[]
   tasks    TaskTag[]
   goals    GoalTag[]
+  learningTopics  LearningTopicTag[]
+  learningConcepts LearningConceptTag[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -424,6 +433,118 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+// Learning Management System
+model LearningTopic {
+  id          String             @id @default(cuid())
+  title       String
+  description String?            @db.Text
+  color       String             @default("#8B5CF6")
+  priority    Priority           @default(MEDIUM)
+  status      LearningTopicStatus @default(ACTIVE)
+
+  // Progress tracking
+  estimatedHours Float?
+  actualHours    Float?          @default(0)
+  progress       Int             @default(0) // 0-100
+
+  // Timeline
+  startDate   DateTime?
+  targetDate  DateTime?
+  completedAt DateTime?
+
+  // Relationships
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  concepts    LearningConcept[]
+  tags        LearningTopicTag[]
+  notes       Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+}
+
+enum LearningTopicStatus {
+  ACTIVE
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+model LearningConcept {
+  id          String              @id @default(cuid())
+  title       String
+  description String?             @db.Text
+  content     String?             @db.Text
+  resources   Json?               @default("[]") // Array of resource objects {title, url, type}
+  status      LearningConceptStatus @default(NOT_STARTED)
+  priority    Priority            @default(MEDIUM)
+
+  // Progress and understanding
+  understandingLevel Int          @default(1) // 1-5 scale
+  timeSpent         Float?        @default(0) // in hours
+
+
+  // Timeline
+  startDate    DateTime?
+  completedAt  DateTime?
+
+  // Relationships
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId      String
+  topic        LearningTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  tags         LearningConceptTag[]
+  notes        Note[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([status])
+  @@index([priority])
+}
+
+enum LearningConceptStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  MASTERED
+}
+
+// Learning Tag relationship tables
+model LearningTopicTag {
+  topicId String
+  topic   LearningTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  tagId   String
+  tag     Tag           @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([topicId, tagId])
+  @@index([topicId])
+  @@index([tagId])
+}
+
+model LearningConceptTag {
+  conceptId String
+  concept   LearningConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([conceptId, tagId])
+  @@index([conceptId])
+  @@index([tagId])
 }
 
 // don't touch the following , as it is schema of auth js

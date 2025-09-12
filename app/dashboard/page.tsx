@@ -10,10 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 // Import components
 import DayComponent from "@/components/days/Day";
 import ProjectManagement from "@/components/project-management/ProjectManagement";
+import LearningManagement from "@/components/learning/LearningManagement";
 
 // Import stores
 import { useDayStore } from "@/stores/day";
 import { useProjectStore } from "@/stores/project";
+import { useLearningStore } from "@/stores/learning";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -23,17 +25,20 @@ export default function DashboardPage() {
   // Store selectors
   const {
     selectedDay,
-    loading: dayLoading,
+    initialLoading: dayLoading,
     error: dayError,
     fetchTodayEntry,
   } = useDayStore();
 
   const {
     projects,
-    isLoading: projectLoading,
+    initialLoading: projectLoading,
     error: projectError,
     fetchProjects,
   } = useProjectStore();
+
+  const { topics, topicsLoading, topicsError, fetchTopics } =
+    useLearningStore();
 
   useEffect(() => {
     setIsClient(true);
@@ -47,8 +52,17 @@ export default function DashboardPage() {
 
       // Fetch projects
       fetchProjects(session.user.id);
+
+      // Fetch learning topics
+      fetchTopics(session.user.id);
     }
-  }, [session?.user?.id, isClient, fetchTodayEntry, fetchProjects]);
+  }, [
+    session?.user?.id,
+    isClient,
+    fetchTodayEntry,
+    fetchProjects,
+    fetchTopics,
+  ]);
 
   // Loading states
   if (status === "loading" || !isClient) {
@@ -84,8 +98,8 @@ export default function DashboardPage() {
     );
   }
 
-  const isLoading = dayLoading || projectLoading;
-  const hasError = dayError || projectError;
+  const isLoading = dayLoading || projectLoading || topicsLoading;
+  const hasError = dayError || projectError || topicsError;
 
   return (
     <div className="container mx-auto p-2 space-y-3">
@@ -99,7 +113,9 @@ export default function DashboardPage() {
 
       {hasError && (
         <Alert variant="destructive">
-          <AlertDescription>{dayError || projectError}</AlertDescription>
+          <AlertDescription>
+            {dayError || projectError || topicsError}
+          </AlertDescription>
         </Alert>
       )}
 
@@ -108,9 +124,10 @@ export default function DashboardPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
+          <TabsTrigger value="learning">Learning</TabsTrigger>
         </TabsList>
 
         <TabsContent value="today" className="space-y-4">
@@ -124,6 +141,12 @@ export default function DashboardPage() {
         <TabsContent value="projects" className="space-y-4">
           <div className="h-[calc(100vh-200px)]">
             <ProjectManagement />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="learning" className="space-y-4">
+          <div className="h-[calc(100vh-200px)]">
+            <LearningManagement />
           </div>
         </TabsContent>
       </Tabs>

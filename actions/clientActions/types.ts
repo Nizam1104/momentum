@@ -136,6 +136,8 @@ export interface Note extends BaseEntity {
   dayId?: string;
   projectId?: string;
   categoryId?: string;
+  conceptId?: string;
+  userId?: string;
 }
 
 export interface Day extends BaseEntity {

@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/accordion";
 import { CheckCircle2, CalendarDays } from "lucide-react";
 import DayNotes from "./DayNotes";
-import MultiNoteManager from "@/components/notes/Note";
 import DayTasks from "./DayTasks";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";

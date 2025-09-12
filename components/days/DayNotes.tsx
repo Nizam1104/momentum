@@ -28,7 +28,7 @@ export default function DayNotes() {
   const {
     selectedDay,
     notes,
-    notesLoading,
+    notesInitialLoading,
     notesError,
     createNoteAsync,
     updateNoteAsync,
@@ -113,7 +113,7 @@ export default function DayNotes() {
       (currentStoreNote.title !== localActiveNote.title ||
         currentStoreNote.content !== localActiveNote.content)
     ) {
-      console.log(localActiveNote.contents);
+      console.log(localActiveNote.content);
       await updateNoteAsync(activeNoteId, {
         title: localActiveNote.title || "",
         content: localActiveNote.content,
@@ -155,7 +155,7 @@ export default function DayNotes() {
     }
   };
 
-  if (notesLoading) {
+  if (notesInitialLoading) {
     return (
       <Card>
         <CardHeader>
@@ -218,7 +218,7 @@ export default function DayNotes() {
           size="sm"
           onClick={handleAddNote}
           className="ml-auto h-8"
-          disabled={notesLoading}
+          disabled={notesInitialLoading}
         >
           <PlusCircle className="h-4 w-4 mr-2" />
           New Note

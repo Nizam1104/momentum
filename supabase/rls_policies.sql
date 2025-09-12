@@ -20,6 +20,10 @@ ALTER TABLE "public"."HabitTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Template" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Achievement" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."UserAchievement" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."LearningTopic" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."LearningConcept" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."LearningTopicTag" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "public"."LearningConceptTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Account" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Session" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."VerificationToken" ENABLE ROW LEVEL SECURITY;
@@ -48,6 +52,198 @@ AS PERMISSIVE
 FOR INSERT
 TO authenticated
 WITH CHECK (id = (auth.jwt() ->> 'sub'));
+
+-- ===========================================
+-- LEARNING TOPIC TABLE POLICIES
+-- ===========================================
+
+CREATE POLICY "Users can view own learning topics"
+ON "public"."LearningTopic"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can insert own learning topics"
+ON "public"."LearningTopic"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can update own learning topics"
+ON "public"."LearningTopic"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'))
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can delete own learning topics"
+ON "public"."LearningTopic"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+-- ===========================================
+-- LEARNING CONCEPT TABLE POLICIES
+-- ===========================================
+
+CREATE POLICY "Users can view own learning concepts"
+ON "public"."LearningConcept"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can insert own learning concepts"
+ON "public"."LearningConcept"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can update own learning concepts"
+ON "public"."LearningConcept"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'))
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can delete own learning concepts"
+ON "public"."LearningConcept"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+-- ===========================================
+-- LEARNING TOPIC TAG TABLE POLICIES
+-- ===========================================
+
+CREATE POLICY "Users can view own learning topic tags through topics"
+ON "public"."LearningTopicTag"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningTopic" lt
+    WHERE lt.id = "LearningTopicTag"."topicId"
+    AND lt."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can insert learning topic tags for own topics"
+ON "public"."LearningTopicTag"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningTopic" lt
+    WHERE lt.id = "LearningTopicTag"."topicId"
+    AND lt."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can update learning topic tags for own topics"
+ON "public"."LearningTopicTag"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningTopic" lt
+    WHERE lt.id = "LearningTopicTag"."topicId"
+    AND lt."userId" = (auth.jwt() ->> 'sub')
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningTopic" lt
+    WHERE lt.id = "LearningTopicTag"."topicId"
+    AND lt."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can delete learning topic tags for own topics"
+ON "public"."LearningTopicTag"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningTopic" lt
+    WHERE lt.id = "LearningTopicTag"."topicId"
+    AND lt."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+-- ===========================================
+-- LEARNING CONCEPT TAG TABLE POLICIES
+-- ===========================================
+
+CREATE POLICY "Users can view own learning concept tags through concepts"
+ON "public"."LearningConceptTag"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningConcept" lc
+    WHERE lc.id = "LearningConceptTag"."conceptId"
+    AND lc."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can insert learning concept tags for own concepts"
+ON "public"."LearningConceptTag"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningConcept" lc
+    WHERE lc.id = "LearningConceptTag"."conceptId"
+    AND lc."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can update learning concept tags for own concepts"
+ON "public"."LearningConceptTag"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningConcept" lc
+    WHERE lc.id = "LearningConceptTag"."conceptId"
+    AND lc."userId" = (auth.jwt() ->> 'sub')
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningConcept" lc
+    WHERE lc.id = "LearningConceptTag"."conceptId"
+    AND lc."userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can delete learning concept tags for own concepts"
+ON "public"."LearningConceptTag"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM "public"."LearningConcept" lc
+    WHERE lc.id = "LearningConceptTag"."conceptId"
+    AND lc."userId" = (auth.jwt() ->> 'sub')
+  )
+);
 
 -- ===========================================
 -- DAY TABLE POLICIES
@@ -461,7 +657,7 @@ USING (
         SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     )) AND
     ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task" 
+        SELECT 1 FROM "public"."Task"
         JOIN "public"."Project" ON "Project".id = "Task"."projectId"
         WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     ))
@@ -480,7 +676,7 @@ WITH CHECK (
         SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     )) AND
     ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task" 
+        SELECT 1 FROM "public"."Task"
         JOIN "public"."Project" ON "Project".id = "Task"."projectId"
         WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     ))
@@ -499,7 +695,7 @@ USING (
         SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     )) AND
     ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task" 
+        SELECT 1 FROM "public"."Task"
         JOIN "public"."Project" ON "Project".id = "Task"."projectId"
         WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     ))
@@ -518,7 +714,7 @@ USING (
         SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     )) AND
     ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task" 
+        SELECT 1 FROM "public"."Task"
         JOIN "public"."Project" ON "Project".id = "Task"."projectId"
         WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
     ))
