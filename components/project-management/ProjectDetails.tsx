@@ -116,73 +116,62 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     <ScrollArea className="h-full pr-4">
       <Card className="mb-6">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: project.color }}
-              ></div>
-              <CardTitle className="text-3xl font-bold">
-                {project.name}
-              </CardTitle>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: project.color }} />
+              <div>
+                <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
+                {project.description && (
+                  <CardDescription className="mt-1">{project.description}</CardDescription>
+                )}
+              </div>
             </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEditProject(project)}
-              >
-                <Edit className="mr-2 h-4 w-4" /> Edit Project
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onEditProject(project)}>
+                <Edit className="mr-2 h-4 w-4" /> Edit
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDeleteProject(project.id)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" /> Delete Project
+              <Button variant="destructive" size="sm" onClick={() => onDeleteProject(project.id)}>
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
             </div>
           </div>
-          <CardDescription className="mt-2 text-base text-muted-foreground">
-            {project.description || "No description provided for this project."}
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="flex items-center space-x-2">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="flex items-center gap-2 text-sm">
               <Flag className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Priority:</span>{" "}
-              {getPriorityConfig(project.priority).text}
+              <span className="font-medium">Priority:</span>
+              <span>{getPriorityConfig(project.priority).text}</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 text-sm">
               <Info className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Status:</span>{" "}
-              {getProjectStatusConfig(project.status).text}
+              <span className="font-medium">Status:</span>
+              <span>{getProjectStatusConfig(project.status).text}</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 text-sm">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Start Date:</span>{" "}
-              {formatDate(project.startDate)}
+              <span className="font-medium">Start:</span>
+              <span>{formatDate(project.startDate)}</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 text-sm">
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Due Date:</span>{" "}
-              {formatDate(project.dueDate)}
+              <span className="font-medium">Due:</span>
+              <span>{formatDate(project.dueDate)}</span>
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Progress</h3>
-            <div className="flex items-center gap-2">
-              <Progress value={project.progress} className="h-3 flex-grow" />
-              <span className="font-medium text-lg">{project.progress}%</span>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Progress</span>
+              <span className="font-semibold">{project.progress}%</span>
             </div>
+            <Progress value={project.progress} className="h-2" />
           </div>
         </CardContent>
       </Card>
 
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <ListTodo className="h-6 w-6 text-primary" /> Tasks
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <ListTodo className="h-5 w-5" /> Tasks
         </h2>
         <Button onClick={handleAddTaskClick}>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Task
@@ -190,7 +179,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       </div>
       <Separator className="mb-4" />
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {sortedTasks.length > 0 ? (
           sortedTasks.map((task) => (
             <TaskItem
@@ -202,19 +191,17 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
             />
           ))
         ) : (
-          <p className="text-center text-muted-foreground py-8">
-            No tasks for this project yet. Click "Add Task" to get started!
-          </p>
+          <div className="text-center py-8 text-muted-foreground">
+            <ListTodo className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>No tasks yet. Click "Add Task" to get started!</p>
+          </div>
         )}
       </div>
 
-      {/* Task Form Dialog */}
       <Dialog open={isTaskFormOpen} onOpenChange={setIsTaskFormOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {editingTask ? "Edit Task" : "Create New Task"}
-            </DialogTitle>
+            <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
           </DialogHeader>
           <TaskForm
             initialData={editingTask}

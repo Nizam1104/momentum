@@ -206,8 +206,8 @@ export default function ProjectManagement() {
 
   if (!isClient) {
     return (
-      <div className="flex h-full overflow-hidden bg-background">
-        <div className="w-full md:w-1/3 lg:w-1/3 p-6 border-r bg-card/50 flex flex-col">
+      <div className="flex h-full">
+        <div className="w-1/3 p-6 border-r flex flex-col">
           <Skeleton className="h-8 w-32 mb-4" />
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -224,60 +224,39 @@ export default function ProjectManagement() {
   }
 
   return (
-    <div className="flex h-full overflow-hidden bg-background">
+    <div className="flex h-full">
       {hasError && (
-        <Alert
-          className="absolute top-4 right-4 w-auto z-50"
-          variant="destructive"
-        >
+        <Alert className="absolute top-4 right-4 w-auto z-50" variant="destructive">
           <AlertDescription>{projectError || taskError}</AlertDescription>
         </Alert>
       )}
 
       {/* Left Sidebar: Project List */}
-      <div
-        className={`
-          ${isSidebarOpen ? "w-full md:w-1/3 lg:w-1/3 p-6" : "w-16 p-4"}
-          border-r bg-card/50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out
-        `}
-      >
-        <div
-          className={`flex items-center justify-between ${isSidebarOpen ? "mb-6" : "mb-0"}`}
-        >
+      <div className={`${isSidebarOpen ? "w-1/3 p-6" : "w-16 p-4"} border-r flex flex-col transition-all`}>
+        <div className={`flex items-center justify-between ${isSidebarOpen ? "mb-6" : "mb-0"}`}>
           {isSidebarOpen ? (
             <>
-              <h1 className="text-xl font-extrabold flex items-center gap-2">
-                <FolderOpen className="h-7 w-7 text-primary" /> Projects
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <FolderOpen className="h-6 w-6" /> Projects
               </h1>
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setEditingProject(null);
-                    setIsProjectFormOpen(true);
-                  }}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" /> New Project
+                <Button size="sm" onClick={() => {
+                  setEditingProject(null);
+                  setIsProjectFormOpen(true);
+                }}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> New
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsSidebarOpen(false)}
-                >
+                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center w-full gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(true)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
                 <ChevronRight className="h-5 w-5" />
               </Button>
-              <FolderOpen className="h-7 w-7 text-primary" />
+              <FolderOpen className="h-6 w-6" />
             </div>
           )}
         </div>
@@ -285,13 +264,10 @@ export default function ProjectManagement() {
         {isSidebarOpen && (
           <>
             <Separator className="mb-6" />
-
-            <ScrollArea className="flex-grow pr-4 -mr-4 overflow-y-auto">
-              <div className="grid gap-4">
+            <ScrollArea className="flex-1">
+              <div className="space-y-4">
                 {isLoading && projects.length === 0 ? (
-                  [...Array(3)].map((_, i) => (
-                    <Skeleton key={i} className="h-24 w-full" />
-                  ))
+                  [...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
                 ) : projectsWithProgress.length > 0 ? (
                   projectsWithProgress.map((project) => (
                     <ProjectCard
@@ -305,11 +281,8 @@ export default function ProjectManagement() {
                 ) : (
                   <Alert>
                     <Info className="h-4 w-4" />
-                    <AlertTitle>No Projects Found</AlertTitle>
-                    <AlertDescription>
-                      Start by creating your first project to organize your
-                      work.
-                    </AlertDescription>
+                    <AlertTitle>No Projects</AlertTitle>
+                    <AlertDescription>Create your first project to get started.</AlertDescription>
                   </Alert>
                 )}
               </div>
@@ -318,8 +291,8 @@ export default function ProjectManagement() {
         )}
       </div>
 
-      {/* Right Content Area: Project Details or Placeholder */}
-      <div className="flex-1 p-6 overflow-hidden">
+      {/* Right Content Area */}
+      <div className="flex-1 p-6 overflow-auto">
         {currentSelectedProject ? (
           <ProjectDetails
             project={currentSelectedProject}
@@ -332,11 +305,10 @@ export default function ProjectManagement() {
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-            <LayoutGrid className="h-24 w-24 mb-6 text-primary/50" />
-            <h2 className="text-2xl font-semibold mb-2">Select a Project</h2>
-            <p className="max-w-md">
-              Choose a project from the left sidebar to view its details and
-              manage tasks, or create a new project to get started.
+            <LayoutGrid className="h-16 w-16 mb-4 opacity-50" />
+            <h2 className="text-xl font-semibold mb-2">Select a Project</h2>
+            <p className="text-sm max-w-md">
+              Choose a project from the sidebar to view details and manage tasks.
             </p>
           </div>
         )}

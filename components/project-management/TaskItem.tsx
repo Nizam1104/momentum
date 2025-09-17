@@ -10,8 +10,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -63,71 +61,62 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   };
 
   return (
-    <Card className="grid grid-cols-9 items-center px-4 py-2 shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
-      <div className="flex-1 grid gap-2 items-start w-full px-4 col-span-8">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id={`task-${task.id}`}
-            checked={task.status === TaskStatus.COMPLETED}
-            onCheckedChange={handleToggleComplete}
-            className="mr-4 h-5 w-5 border border-gray-600"
-          />
-          <div className="flex flex-col gap-y-2">
-            <label
-              htmlFor={`task-${task.id}`}
-              className={cn(
-                "text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-                task.status === TaskStatus.COMPLETED &&
-                  "line-through text-muted-foreground"
-              )}
-            >
-              {task.title}
-            </label>
-            {task.description && (
-              <p className="text-sm text-muted-foreground line-clamp-1">
-                {task.description}
-              </p>
+    <Card className="p-3 hover:shadow-md transition-shadow">
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id={`task-${task.id}`}
+          checked={task.status === TaskStatus.COMPLETED}
+          onCheckedChange={handleToggleComplete}
+          className="mt-1"
+        />
+        <div className="flex-1 space-y-1">
+          <label
+            htmlFor={`task-${task.id}`}
+            className={cn(
+              "font-medium cursor-pointer",
+              task.status === TaskStatus.COMPLETED && "line-through text-muted-foreground"
             )}
-            <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Flag className="h-3 w-3" />
-                {getPriorityConfig(task.priority).text}
-              </div>
-              <div className="flex items-center gap-1">
-                {getStatusIcon(task.status)}
-                {getTaskStatusConfig(task.status).text}
-              </div>
-              {task.dueDate && (
-                <div className="flex items-center gap-1">
-                  <CalendarDays className="h-3 w-3" />
-                  <span>{formatDate(task.dueDate)}</span>
-                </div>
-              )}
+          >
+            {task.title}
+          </label>
+          {task.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {task.description}
+            </p>
+          )}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Flag className="h-3 w-3" />
+              {getPriorityConfig(task.priority).text}
             </div>
+            <div className="flex items-center gap-1">
+              {getStatusIcon(task.status)}
+              {getTaskStatusConfig(task.status).text}
+            </div>
+            {task.dueDate && (
+              <div className="flex items-center gap-1">
+                <CalendarDays className="h-3 w-3" />
+                {formatDate(task.dueDate)}
+              </div>
+            )}
           </div>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(task)}>
+              <Edit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 ml-4">
-            <span className="sr-only">Open menu</span>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onEdit(task)}>
-            <Edit className="mr-2 h-4 w-4" /> Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onDelete(task.id)}
-            className="text-red-600 dark:text-red-400"
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </Card>
   );
 };
