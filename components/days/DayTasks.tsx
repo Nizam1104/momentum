@@ -375,7 +375,7 @@ function TaskItem({
 
   if (isEditing) {
     return (
-      <div className="flex items-start space-x-3 p-3 border rounded-lg">
+      <div className="flex items-start space-x-3 p-3  rounded-lg">
         <Checkbox
           checked={isCompleted}
           onCheckedChange={() => onToggle(task.id, task.status)}
@@ -422,7 +422,7 @@ function TaskItem({
 
   return (
     <div
-      className={`flex items-start space-x-3 p-3 border rounded-lg transition-opacity ${
+      className={`flex items-start space-x-3 p-3  rounded-lg transition-opacity ${
         isCompleted ? "opacity-60" : ""
       }`}
     >

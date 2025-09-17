@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -410,7 +409,7 @@ export default function LearningTopicDetail({
               <PriorityBadge priority={topic.priority} />
               <Badge
                 variant="outline"
-                className={`text-xs ${isOverdue ? "border-red-200 text-red-700" : ""}`}
+                className={`text-xs ${isOverdue ? "-red-200 text-red-700" : ""}`}
               >
                 {topic.status.toLowerCase().replace("_", " ")}
               </Badge>
@@ -422,85 +421,6 @@ export default function LearningTopicDetail({
           Add Concept
         </Button>
       </div>
-
-      {/* Topic Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-2">{topic.progress}%</div>
-            <Progress value={topic.progress} className="h-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Concepts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {completedConcepts.length}/{topicConcepts.length}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {topicConcepts.length > 0
-                ? `${Math.round((completedConcepts.length / topicConcepts.length) * 100)}% completed`
-                : "No concepts yet"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Time Spent
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {topic.actualHours?.toFixed(1) || 0}h
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {topic.estimatedHours
-                ? `of ${topic.estimatedHours}h estimated`
-                : "No estimate set"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm">
-              <div>Started: {formatDate(topic.startDate)}</div>
-              <div className={isOverdue ? "text-red-600 font-medium" : ""}>
-                Target: {formatDate(topic.targetDate)}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Description */}
-      {topic.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{topic.description}</p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Error Alert */}
       {conceptsError && (

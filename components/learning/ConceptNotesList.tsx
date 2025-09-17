@@ -227,7 +227,6 @@ const NoteCard = ({
                         height={300}
                         preview="live"
                         hideToolbar={false}
-                        visibleDragbar={true}
                         data-color-mode="light"
                         previewOptions={{
                           style: { backgroundColor: "transparent" },
@@ -341,7 +340,6 @@ const NoteCard = ({
           height={150}
           preview="preview"
           hideToolbar={true}
-          visibleDragbar={false}
           data-color-mode="light"
           previewOptions={{
             style: {

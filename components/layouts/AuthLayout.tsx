@@ -4,7 +4,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-2">
       <div
-        className="relative hidden flex-col bg-zinc-900 p-10 text-white dark:border-r lg:flex"
+        className="relative hidden flex-col bg-zinc-900 p-10 text-white dark:-r lg:flex"
         style={{
           backgroundImage:
             "url(https://images.unsplash.com/photo-1690353997944-079691652760?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=80)",

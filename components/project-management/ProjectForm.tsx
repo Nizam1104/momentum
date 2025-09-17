@@ -357,7 +357,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                     >
                       <div className="flex items-center">
                         <span
-                          className="w-4 h-4 rounded-full mr-2 border"
+                          className="w-4 h-4 rounded-full mr-2 "
                           style={{ backgroundColor: field.value }}
                         ></span>
                         {colorOptions.find(
@@ -391,7 +391,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                               )}
                             />
                             <span
-                              className="w-4 h-4 rounded-full mr-2 border"
+                              className="w-4 h-4 rounded-full mr-2 "
                               style={{ backgroundColor: color.value }}
                             ></span>
                             {color.name}

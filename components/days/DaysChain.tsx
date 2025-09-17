@@ -66,7 +66,7 @@ export default function DaysChain() {
           const isToday = date.toDateString() === new Date().toDateString();
           
           return (
-            <div key={day.id} className="flex items-center justify-between p-2 rounded-lg border">
+            <div key={day.id} className="flex items-center justify-between p-2 rounded-lg ">
               <div className="flex items-center gap-2">
                 {day.isCompleted ? (
                   <CheckCircle2 className="h-4 w-4 text-green-600" />

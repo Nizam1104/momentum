@@ -52,7 +52,7 @@ export default function AuthPage() {
         <CardContent>
           <Button
             variant="outline"
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-md  -gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200"
             onClick={handleSignin}
           >
             <FcGoogle className="h-5 w-5" />
@@ -66,7 +66,7 @@ export default function AuthPage() {
                 Don&apos;t have an account?{" "}
                 <button
                   onClick={() => toggleMode("register")}
-                  className="text-blue-600 hover:underline font-medium cursor-pointer bg-transparent border-none"
+                  className="text-blue-600 hover:underline font-medium cursor-pointer bg-transparent -none"
                 >
                   Register
                 </button>
@@ -76,7 +76,7 @@ export default function AuthPage() {
                 Already have an account?{" "}
                 <button
                   onClick={() => toggleMode("login")}
-                  className="text-blue-600 hover:underline font-medium cursor-pointer bg-transparent border-none"
+                  className="text-blue-600 hover:underline font-medium cursor-pointer bg-transparent -none"
                 >
                   Sign In
                 </button>

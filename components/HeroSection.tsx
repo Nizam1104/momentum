@@ -60,7 +60,7 @@ const HeroSection = () => {
           <Button className="w-full sm:w-48 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
             Start Using
           </Button>
-          {/* <Button variant="outline" className="w-full sm:w-48 h-12 rounded-full border-white/[0.2] text-white text-lg font-bold hover:bg-white/[0.1] transition-colors backdrop-blur-sm">
+          {/* <Button variant="outline" className="w-full sm:w-48 h-12 rounded-full -white/[0.2] text-white text-lg font-bold hover:bg-white/[0.1] transition-colors backdrop-blur-sm">
             Watch Demo
           </Button> */}
         </motion.div>
@@ -74,7 +74,7 @@ const HeroSection = () => {
           <TextRevealCard
             text="Transform chaos into clarity."
             revealText="With Momentum"
-            className=" border-white/10 text-xl text-center"
+            className=" -white/10 text-xl text-center"
           >
           </TextRevealCard>
         </motion.div>

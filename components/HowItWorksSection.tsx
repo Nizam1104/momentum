@@ -35,7 +35,7 @@ const HowItWorksSection = () => {
               </p>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 p-4 rounded-lg border border-blue-500/20">
+          <div className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 p-4 rounded-lg  -blue-500/20">
             <div className="flex items-center gap-3 mb-2">
               <IconBrain className="h-5 w-5 text-blue-400" />
               <span className="font-semibold text-white">Smart Recommendations</span>
@@ -68,7 +68,7 @@ const HowItWorksSection = () => {
               </p>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg border border-green-500/20">
+          <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 p-4 rounded-lg  -green-500/20">
             <div className="flex items-center gap-3 mb-2">
               <IconTarget className="h-5 w-5 text-green-400" />
               <span className="font-semibold text-white">Flow State Protection</span>
@@ -101,7 +101,7 @@ const HowItWorksSection = () => {
               </p>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 p-4 rounded-lg border border-purple-500/20">
+          <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 p-4 rounded-lg  -purple-500/20">
             <div className="flex items-center gap-3 mb-2">
               <IconTrendingUp className="h-5 w-5 text-purple-400" />
               <span className="font-semibold text-white">Predictive Optimization</span>

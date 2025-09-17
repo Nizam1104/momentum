@@ -91,7 +91,7 @@ const FeaturesSection = () => {
           viewport={{ once: true }}
           className="mt-16 max-w-4xl mx-auto px-4"
         >
-          <CardSpotlight className="h-96 w-full bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-white/10">
+          <CardSpotlight className="h-96 w-full bg-gradient-to-br from-blue-900/20 to-purple-900/20  -white/10">
             <div className="relative z-20 p-8 text-center">
               <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 AI-Powered Insights Engine

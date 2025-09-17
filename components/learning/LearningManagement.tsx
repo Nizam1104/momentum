@@ -139,12 +139,6 @@ export default function LearningManagement() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Learning Management</h1>
-          <p className="text-muted-foreground">
-            Track your learning journey and manage your knowledge
-          </p>
-        </div>
         <div className="flex gap-2">
           <Button onClick={handleShowOverview} size="sm" variant="outline">
             <TrendingUp className="h-4 w-4 mr-2" />

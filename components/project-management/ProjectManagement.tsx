@@ -207,7 +207,7 @@ export default function ProjectManagement() {
   if (!isClient) {
     return (
       <div className="flex h-full">
-        <div className="w-1/3 p-6 border-r flex flex-col">
+        <div className="w-1/3 p-6 -r flex flex-col">
           <Skeleton className="h-8 w-32 mb-4" />
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -232,7 +232,7 @@ export default function ProjectManagement() {
       )}
 
       {/* Left Sidebar: Project List */}
-      <div className={`${isSidebarOpen ? "w-1/3 p-6" : "w-16 p-4"} border-r flex flex-col transition-all`}>
+      <div className={`${isSidebarOpen ? "w-1/3 p-6" : "w-16 p-4"} -r flex flex-col transition-all`}>
         <div className={`flex items-center justify-between ${isSidebarOpen ? "mb-6" : "mb-0"}`}>
           {isSidebarOpen ? (
             <>

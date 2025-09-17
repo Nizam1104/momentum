@@ -4,7 +4,7 @@ import { IconBrandGithub, IconBrandX, IconBrandLinkedin, IconMail } from "@table
 
 const Footer = () => {
   return (
-    <footer className="bg-black text-neutral-400 py-12 border-t border-neutral-800">
+    <footer className="bg-black text-neutral-400 py-12 -t -neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
@@ -53,7 +53,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div className="-t -neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="text-center md:text-left mb-4 md:mb-0">
             <p>&copy; {new Date().getFullYear()} Momentum Technologies Inc. All rights reserved.</p>
           </div>

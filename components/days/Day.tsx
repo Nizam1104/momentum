@@ -43,7 +43,7 @@ export default function DayComponent({
 
   if (!isClient) {
     return (
-      <div className="w-full border rounded-lg p-4 bg-card">
+      <div className="w-full  rounded-lg p-4 bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Skeleton className="h-5 w-5" />
@@ -67,7 +67,7 @@ export default function DayComponent({
     >
       <AccordionItem
         value={accordionValue}
-        className="border rounded-lg px-4 bg-card"
+        className=" rounded-lg px-4 bg-card"
       >
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center gap-4">

@@ -143,7 +143,7 @@ const TopicCard = ({
           <PriorityBadge priority={topic.priority} />
           <Badge
             variant="outline"
-            className={`text-xs ${isOverdue ? "border-red-200 text-red-700" : ""}`}
+            className={`text-xs ${isOverdue ? "-red-200 text-red-700" : ""}`}
           >
             {topic.status.toLowerCase().replace("_", " ")}
           </Badge>
@@ -185,7 +185,7 @@ const TopicCard = ({
 
         {/* Timeline */}
         {(topic.startDate || topic.targetDate) && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 -t">
             <Calendar className="h-4 w-4" />
             <span>
               {topic.startDate ? formatDate(topic.startDate) : "Not started"}

@@ -17,7 +17,11 @@ import { useDayStore } from "@/stores/day";
 import { useProjectStore } from "@/stores/project";
 import { useLearningStore } from "@/stores/learning";
 
+import { useRouter, useSearchParams } from "next/navigation";
+
 export default function DashboardPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { data: session, status } = useSession();
   const [isClient, setIsClient] = useState(false);
   const [activeTab, setActiveTab] = useState("today");
@@ -43,6 +47,14 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Initialize tab from search params
+  useEffect(() => {
+    if (isClient) {
+      const tabId = searchParams.get('tab') || 'today';
+      setActiveTab(tabId);
+    }
+  }, [searchParams, isClient]);
 
   // Fetch data when user session is available
   useEffect(() => {
@@ -98,18 +110,17 @@ export default function DashboardPage() {
     );
   }
 
-  const isLoading = dayLoading || projectLoading || topicsLoading;
   const hasError = dayError || projectError || topicsError;
+
+  const handleTabChange = function(tabId: string) {
+    setActiveTab(tabId);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tabId);
+    router.replace(`dashboard?${params.toString()}`);
+  }
 
   return (
     <div className="container mx-auto p-2 space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground">
-            Welcome back, {session?.user?.name || "User"}!
-          </p>
-        </div>
-      </div>
 
       {hasError && (
         <Alert variant="destructive">
@@ -121,7 +132,9 @@ export default function DashboardPage() {
 
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={(value) => {
+          handleTabChange(value)
+        }}
         className="space-y-4"
       >
         <TabsList className="grid w-full grid-cols-3">

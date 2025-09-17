@@ -20,27 +20,27 @@ export function getProjectStatusConfig(status: ProjectStatus) {
   switch (status) {
     case ProjectStatus.ACTIVE:
       colorClass =
-        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 border-green-500/30";
+        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 -green-500/30";
       break;
     case ProjectStatus.COMPLETED:
       colorClass =
-        "bg-blue-500/20 text-blue-700 dark:bg-blue-400/20 dark:text-blue-300 border-blue-500/30";
+        "bg-blue-500/20 text-blue-700 dark:bg-blue-400/20 dark:text-blue-300 -blue-500/30";
       break;
     case ProjectStatus.ON_HOLD:
       colorClass =
-        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 border-yellow-500/30";
+        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 -yellow-500/30";
       break;
     case ProjectStatus.CANCELLED:
       colorClass =
-        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 border-red-500/30";
+        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 -red-500/30";
       break;
     case ProjectStatus.ARCHIVED:
       colorClass =
-        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 border-gray-500/30";
+        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 -gray-500/30";
       break;
     default:
       colorClass =
-        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 border-gray-500/30";
+        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 -gray-500/30";
   }
 
   return {
@@ -56,23 +56,23 @@ export function getTaskStatusConfig(status: TaskStatus) {
   switch (status) {
     case TaskStatus.TODO:
       colorClass =
-        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 border-gray-500/30";
+        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 -gray-500/30";
       break;
     case TaskStatus.IN_PROGRESS:
       colorClass =
-        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 border-yellow-500/30";
+        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 -yellow-500/30";
       break;
     case TaskStatus.COMPLETED:
       colorClass =
-        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 border-green-500/30";
+        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 -green-500/30";
       break;
     case TaskStatus.CANCELLED:
       colorClass =
-        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 border-red-500/30";
+        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 -red-500/30";
       break;
     default:
       colorClass =
-        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 border-gray-500/30";
+        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 -gray-500/30";
   }
 
   return {
@@ -88,23 +88,23 @@ export function getPriorityConfig(priority: Priority) {
   switch (priority) {
     case Priority.URGENT:
       colorClass =
-        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 border-red-500/30";
+        "bg-red-500/20 text-red-700 dark:bg-red-400/20 dark:text-red-300 -red-500/30";
       break;
     case Priority.HIGH:
       colorClass =
-        "bg-orange-500/20 text-orange-700 dark:bg-orange-400/20 dark:text-orange-300 border-orange-500/30";
+        "bg-orange-500/20 text-orange-700 dark:bg-orange-400/20 dark:text-orange-300 -orange-500/30";
       break;
     case Priority.MEDIUM:
       colorClass =
-        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 border-yellow-500/30";
+        "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-400/20 dark:text-yellow-300 -yellow-500/30";
       break;
     case Priority.LOW:
       colorClass =
-        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 border-green-500/30";
+        "bg-green-500/20 text-green-700 dark:bg-green-400/20 dark:text-green-300 -green-500/30";
       break;
     default:
       colorClass =
-        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 border-gray-500/30";
+        "bg-gray-500/20 text-gray-700 dark:bg-gray-400/20 dark:text-gray-300 -gray-500/30";
   }
 
   return {

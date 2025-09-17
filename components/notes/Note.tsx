@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import MDEditor from "@uiw/react-md-editor";
+
 import {
   Pencil,
   Save,
@@ -23,6 +23,11 @@ import {
 import { useDayStore } from "@/stores/day";
 import { Note, NoteType } from "@/types/states";
 import { Controller } from "react-hook-form";
+
+const MDEditor = dynamic(
+  () => import("@uiw/react-md-editor"),
+  { ssr: false }
+)
 
 export default function MultiNotes() {
   const {
@@ -198,7 +203,7 @@ export default function MultiNotes() {
   return (
     <div className="space-y-4">
       {/* Note Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b pb-2">
+      <div className="flex items-center gap-2 -b pb-2">
         {notes.map((note) => (
           <Button
             key={note.id}
@@ -237,7 +242,7 @@ export default function MultiNotes() {
                     updateLocalActiveNote("title", e.target.value)
                   }
                   placeholder="Note title"
-                  className="text-2xl font-bold p-0 h-auto border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="text-2xl font-bold p-0 h-auto -none focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               ) : (
                 <div>
@@ -313,7 +318,7 @@ export default function MultiNotes() {
                 height={400}
                 preview={isEditMode ? "live" : "preview"}
                 hideToolbar={!isEditMode}
-                visibleDragbar={isEditMode}
+                visibledragbar={isEditMode}
                 previewOptions={{
                   style: { backgroundColor: "transparent" },
                 }}

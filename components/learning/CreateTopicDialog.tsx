@@ -260,7 +260,7 @@ export default function CreateTopicDialog({
                           <SelectValue placeholder="Select color">
                             <div className="flex items-center gap-2">
                               <div
-                                className="w-4 h-4 rounded-full border border-gray-300"
+                                className="w-4 h-4 rounded-full  -gray-300"
                                 style={{ backgroundColor: field.value }}
                               />
                               <span>
@@ -277,7 +277,7 @@ export default function CreateTopicDialog({
                           <SelectItem key={color.value} value={color.value}>
                             <div className="flex items-center gap-2">
                               <div
-                                className="w-4 h-4 rounded-full border border-gray-300"
+                                className="w-4 h-4 rounded-full  -gray-300"
                                 style={{ backgroundColor: color.value }}
                               />
                               <span>{color.name}</span>
