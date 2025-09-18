@@ -1,6 +1,5 @@
 "use client";
 import { useState, useMemo, useEffect } from "react"; // Import useEffect
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,16 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTheme } from "next-themes";
-import "@uiw/react-md-editor/markdown-editor.css";
-const MDEditor = dynamic(
-  () => import("@uiw/react-md-editor"),
-  { 
-    ssr: false,
-    loading: () => <div>Loading editor...</div>
-  }
-)
-import { commands } from "@uiw/react-md-editor";
+import MarkdownEditor from "@/components/notes/MarkdownEditor";
 import {
   Pencil,
   Save,
@@ -48,8 +38,7 @@ export default function DayNotes() {
   const [isEditMode, setIsEditMode] = useState(false);
   // Local state for the note being edited
   const [localActiveNote, setLocalActiveNote] = useState<Note | null>(null);
-  const { theme } = useTheme();
-
+  
   // Set initial active note when notes are loaded
   // This useMemo runs when notes or activeNoteId changes
   useMemo(() => {
@@ -301,7 +290,6 @@ export default function DayNotes() {
           <CardContent>
             <div
               className="prose dark:prose-invert max-w-none"
-              data-color-mode={theme === "dark" ? "dark" : "light"}
               onDoubleClick={() => {
                 if (!isEditMode) {
                   setIsEditMode(true);
@@ -314,7 +302,7 @@ export default function DayNotes() {
                 }
               }}
             >
-              <MDEditor
+              <MarkdownEditor
                 key={displayNote.id} // Key should be stable, use displayNote.id
                 value={displayNote.content} // Bind to displayNote for content
                 onChange={(value) =>
@@ -323,25 +311,12 @@ export default function DayNotes() {
                 height={400}
                 preview={isEditMode ? "live" : "preview"}
                 hideToolbar={!isEditMode}
-                data-color-mode={theme === "dark" ? "dark" : "light"}
-                visiableDragbar={false}
-                previewOptions={{
-                  style: { backgroundColor: "transparent" },
+                editable={isEditMode}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.ctrlKey) {
+                    handleSave();
+                  }
                 }}
-                commands={[
-                  commands.bold,
-                  commands.italic,
-                  commands.strikethrough,
-                  commands.hr, // Horizontal Rule
-                  commands.title, // For headings (H1-H6)
-                  commands.unorderedListCommand,
-                  commands.orderedListCommand,
-                  commands.checkedListCommand, // Task list
-                  commands.quote,
-                  commands.code, // Inline code
-                  commands.codeBlock, // Code block
-                  commands.link,
-                ]}
               />
             </div>
           </CardContent>

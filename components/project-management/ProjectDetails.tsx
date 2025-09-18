@@ -1,8 +1,7 @@
-// components/project-management/ProjectDetails.tsx
 "use client";
 
 import React, { useState } from "react";
-import { Project, Task, TaskStatus, Priority } from "./enums";
+import { Project, Task as ProjectTask, TaskStatus as ProjectTaskStatus, Priority as ProjectPriority } from "./enums";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,13 +20,10 @@ import {
   CalendarDays,
   ListTodo,
   Info,
-  XCircle,
-  CheckCircle,
-  Hourglass,
 } from "lucide-react";
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from "./utils";
-import { TaskItem } from "./TaskItem";
-import { TaskForm } from "./TaskForm";
+import { UniversalTaskList } from "@/components/tasks/UniversalTaskList";
+import { Task, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
 import {
   Dialog,
   DialogContent,
@@ -35,14 +31,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TaskForm } from "./TaskForm";
 
 interface ProjectDetailsProps {
   project: Project;
-  tasks: Task[];
+  tasks: ProjectTask[];
   onEditProject: (project: Project) => void;
   onDeleteProject: (projectId: string) => void;
-  onAddTask: (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateTask: (updatedTask: Task) => void;
+  onAddTask: (newTask: Omit<ProjectTask, "id" | "createdAt" | "updatedAt">) => void;
+  onUpdateTask: (updatedTask: ProjectTask) => void;
   onDeleteTask: (taskId: string, projectId: string) => void;
 }
 
@@ -56,26 +53,24 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onDeleteTask,
 }) => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
 
   const handleAddTaskClick = () => {
     setEditingTask(null);
     setIsTaskFormOpen(true);
   };
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = (task: ProjectTask) => {
     setEditingTask(task);
     setIsTaskFormOpen(true);
   };
 
   const handleTaskSubmit = (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt"> | Task,
+    taskData: Omit<ProjectTask, "id" | "createdAt" | "updatedAt"> | ProjectTask,
   ) => {
-    console.log("task", taskData);
-    console.log("id" in taskData);
     if ("id" in taskData) {
       // It's an existing task
-      onUpdateTask(taskData as Task);
+      onUpdateTask(taskData as ProjectTask);
     } else {
       // It's a new task
       onAddTask({ ...taskData, projectId: project.id });
@@ -84,33 +79,65 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     setEditingTask(null);
   };
 
-  const sortedTasks = tasks.sort((a, b) => {
-    // Sort by status: TODO, IN_PROGRESS, COMPLETED, CANCELLED
-    const statusOrder = {
-      [TaskStatus.TODO]: 1,
-      [TaskStatus.IN_PROGRESS]: 2,
-      [TaskStatus.COMPLETED]: 3,
-      [TaskStatus.CANCELLED]: 4,
-    };
-    if (statusOrder[a.status] !== statusOrder[b.status]) {
-      return statusOrder[a.status] - statusOrder[b.status];
-    }
-    // Then by priority: URGENT, HIGH, MEDIUM, LOW
-    const priorityOrder = {
-      [Priority.URGENT]: 1,
-      [Priority.HIGH]: 2,
-      [Priority.MEDIUM]: 3,
-      [Priority.LOW]: 4,
-    };
-    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
-    }
-    // Finally by due date (earlier first)
-    if (a.dueDate && b.dueDate) {
-      return a.dueDate.getTime() - b.dueDate.getTime();
-    }
-    return 0;
-  });
+  // Convert tasks to universal format
+  const universalTasks: Task[] = tasks.map(task => ({
+    id: task.id,
+    title: task.title,
+    description: task.description || undefined,
+    status: task.status as UniversalTaskStatus,
+    priority: task.priority as UniversalPriority,
+    dueDate: task.dueDate,
+    createdAt: task.createdAt,
+    updatedAt: task.updatedAt,
+    projectId: task.projectId,
+    completedAt: task.completedAt,
+  }));
+
+  const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
+    onAddTask({
+      title: newTask.title,
+      description: newTask.description,
+      priority: newTask.priority as ProjectPriority,
+      status: newTask.status as ProjectTaskStatus,
+      dueDate: newTask.dueDate,
+      projectId: project.id,
+      completedAt: newTask.completedAt,
+    });
+  };
+
+  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+    const existingTask = tasks.find(t => t.id === taskId);
+    if (!existingTask) return;
+
+    onUpdateTask({
+      ...existingTask,
+      title: updates.title || existingTask.title,
+      description: updates.description || existingTask.description,
+      priority: updates.priority as ProjectPriority || existingTask.priority,
+      status: updates.status as ProjectTaskStatus || existingTask.status,
+      dueDate: updates.dueDate || existingTask.dueDate,
+      completedAt: updates.completedAt || existingTask.completedAt,
+    });
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    onDeleteTask(taskId, project.id);
+  };
+
+  const handleToggleTask = async (taskId: string, currentStatus: UniversalTaskStatus) => {
+    const existingTask = tasks.find(t => t.id === taskId);
+    if (!existingTask) return;
+
+    const newStatus = currentStatus === UniversalTaskStatus.COMPLETED
+      ? ProjectTaskStatus.TODO
+      : ProjectTaskStatus.COMPLETED;
+
+    onUpdateTask({
+      ...existingTask,
+      status: newStatus,
+      completedAt: newStatus === ProjectTaskStatus.COMPLETED ? new Date() : null,
+    });
+  };
 
   return (
     <ScrollArea className="h-full pr-4">
@@ -169,34 +196,21 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <ListTodo className="h-5 w-5" /> Tasks
-        </h2>
-        <Button onClick={handleAddTaskClick}>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Task
-        </Button>
-      </div>
-      <Separator className="mb-4" />
-
-      <div className="space-y-2">
-        {sortedTasks.length > 0 ? (
-          sortedTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              onUpdate={onUpdateTask}
-              onDelete={() => onDeleteTask(task.id, project.id)}
-              onEdit={handleEditTask}
-            />
-          ))
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <ListTodo className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>No tasks yet. Click "Add Task" to get started!</p>
-          </div>
-        )}
-      </div>
+      <UniversalTaskList
+        tasks={universalTasks}
+        title="Project Tasks"
+        showAddButton={true}
+        showSearch={true}
+        showFilters={true}
+        groupBy="status"
+        sortBy="priority"
+        variant="compact"
+        onCreateTask={handleCreateTask}
+        onUpdateTask={handleUpdateTask}
+        onDeleteTask={handleDeleteTask}
+        onToggleTask={handleToggleTask}
+        className="mb-6"
+      />
 
       <Dialog open={isTaskFormOpen} onOpenChange={setIsTaskFormOpen}>
         <DialogContent className="sm:max-w-[500px]">

@@ -122,12 +122,16 @@ const ConceptCard = ({
   onDelete,
   onManageNotes,
   onManageResources,
+  isSelected,
+  onClick,
 }: {
   concept: LearningConcept;
   onStatusChange: (status: LearningConceptStatus) => void;
   onDelete: () => void;
   onManageNotes: () => void;
   onManageResources: () => void;
+  isSelected: boolean;
+  onClick: () => void;
 }) => {
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return "Not set";
@@ -139,117 +143,122 @@ const ConceptCard = ({
   };
 
   return (
-    <div className="group p-4">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <StatusIcon status={concept.status} />
-          <h4 className="font-medium text-base">{concept.title}</h4>
+    <Card className={`cursor-pointer transition-all duration-200 ${isSelected
+        ? 'shadow-[0_0_0_2px_rgba(59,130,246,0.5)] hover:shadow-[0_0_0_2px_rgba(59,130,246,0.6)]'
+        : 'hover:shadow-md'
+      }`} onClick={onClick}>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <StatusIcon status={concept.status} />
+            <h4 className="font-medium text-base">{concept.title}</h4>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onManageNotes}>
+                <StickyNote className="h-4 w-4 mr-2" />
+                Manage Notes
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onManageResources}>
+                <Link className="h-4 w-4 mr-2" />
+                Manage Resources
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange(LearningConceptStatus.IN_PROGRESS)}
+              >
+                Mark as In Progress
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange(LearningConceptStatus.COMPLETED)}
+              >
+                Mark as Completed
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange(LearningConceptStatus.MASTERED)}
+              >
+                Mark as Mastered
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange(LearningConceptStatus.REVIEW)}
+              >
+                Mark for Review
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-red-600">
+                Delete Concept
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onManageNotes}>
-              <StickyNote className="h-4 w-4 mr-2" />
-              Manage Notes
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onManageResources}>
-              <Link className="h-4 w-4 mr-2" />
-              Manage Resources
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onStatusChange(LearningConceptStatus.IN_PROGRESS)}
-            >
-              Mark as In Progress
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onStatusChange(LearningConceptStatus.COMPLETED)}
-            >
-              Mark as Completed
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onStatusChange(LearningConceptStatus.MASTERED)}
-            >
-              Mark as Mastered
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onStatusChange(LearningConceptStatus.REVIEW)}
-            >
-              Mark for Review
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete} className="text-red-600">
-              Delete Concept
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="flex items-center gap-2 flex-wrap mb-3">
-        <PriorityBadge priority={concept.priority} />
-        <span className="text-xs text-muted-foreground">
-          {concept.status.toLowerCase().replace("_", " ")}
-        </span>
-        <UnderstandingLevel level={concept.understandingLevel} />
-      </div>
-      {/* Description */}
-      {concept.description && (
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-          {concept.description}
-        </p>
-      )}
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <PriorityBadge priority={concept.priority} />
+          <span className="text-xs text-muted-foreground">
+            {concept.status.toLowerCase().replace("_", " ")}
+          </span>
+          <UnderstandingLevel level={concept.understandingLevel} />
+        </div>
+        {/* Description */}
+        {concept.description && (
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+            {concept.description}
+          </p>
+        )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">
-            {concept.timeSpent?.toFixed(1) || 0}h spent
-          </span>
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {concept.timeSpent?.toFixed(1) || 0}h spent
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {concept.completedAt
+                ? formatDate(concept.completedAt)
+                : "In progress"}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">
-            {concept.completedAt
-              ? formatDate(concept.completedAt)
-              : "In progress"}
-          </span>
-        </div>
-      </div>
 
-      {/* Notes and Resources Summary */}
-      <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-        <div className="flex items-center gap-2">
-          <StickyNote className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">
-            {concept.notes?.length || 0} notes
-          </span>
+        {/* Notes and Resources Summary */}
+        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+          <div className="flex items-center gap-2">
+            <StickyNote className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {concept.notes?.length || 0} notes
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              {concept.resources?.length || 0} resources
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">
-            {concept.resources?.length || 0} resources
-          </span>
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onManageNotes}>
-          <StickyNote className="h-3 w-3 mr-1" />
-          Notes ({concept.notes?.length || 0})
-        </Button>
-        <Button variant="outline" size="sm" onClick={onManageResources}>
-          <Link className="h-3 w-3 mr-1" />
-          Resources ({concept.resources?.length || 0})
-        </Button>
-      </div>
-    </div>
+        {/* Quick Actions */}
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onManageNotes}>
+            <StickyNote className="h-3 w-3 mr-1" />
+            Notes ({concept.notes?.length || 0})
+          </Button>
+          <Button variant="outline" size="sm" onClick={onManageResources}>
+            <Link className="h-3 w-3 mr-1" />
+            Resources ({concept.resources?.length || 0})
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -272,6 +281,7 @@ export default function LearningTopicDetail({
   const [selectedConcept, setSelectedConcept] =
     useState<LearningConcept | null>(null);
   const [conceptNotes, setConceptNotes] = useState<Note[]>([]);
+  const [selectedView, setSelectedView] = useState<"concepts" | "notes" | "resources">("concepts");
 
   // Fetch concepts for this topic
   useEffect(() => {
@@ -294,7 +304,7 @@ export default function LearningTopicDetail({
         status,
         completedAt:
           status === LearningConceptStatus.COMPLETED ||
-          status === LearningConceptStatus.MASTERED
+            status === LearningConceptStatus.MASTERED
             ? new Date()
             : null,
       });
@@ -302,7 +312,7 @@ export default function LearningTopicDetail({
         status,
         completedAt:
           status === LearningConceptStatus.COMPLETED ||
-          status === LearningConceptStatus.MASTERED
+            status === LearningConceptStatus.MASTERED
             ? new Date()
             : null,
       });
@@ -326,7 +336,7 @@ export default function LearningTopicDetail({
 
   const handleManageNotes = async (concept: LearningConcept) => {
     setSelectedConcept(concept);
-    setActiveTab("notes");
+    setSelectedView("notes");
 
     // Fetch the latest notes for this concept
     try {
@@ -340,7 +350,7 @@ export default function LearningTopicDetail({
 
   const handleManageResources = (concept: LearningConcept) => {
     setSelectedConcept(concept);
-    setActiveTab("resources");
+    setSelectedView("resources");
   };
 
   const handleNotesUpdate = async (notes: Note[]) => {
@@ -392,10 +402,6 @@ export default function LearningTopicDetail({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Topics
-          </Button>
           <Separator orientation="vertical" className="h-6" />
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -403,7 +409,9 @@ export default function LearningTopicDetail({
                 className="w-4 h-4 rounded-full"
                 style={{ backgroundColor: topic.color }}
               />
-              {topic.title}
+              <span className=" -mt-1.5">
+                {topic.title}
+              </span>
             </h1>
             <div className="flex items-center gap-2 mt-1">
               <PriorityBadge priority={topic.priority} />
@@ -430,35 +438,24 @@ export default function LearningTopicDetail({
       )}
 
       {/* Concepts */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="concepts">
-            Concepts ({topicConcepts.length})
-          </TabsTrigger>
-          <TabsTrigger value="notes" disabled={!selectedConcept}>
-            Notes {selectedConcept ? `- ${selectedConcept.title}` : ""}
-          </TabsTrigger>
-          <TabsTrigger value="resources" disabled={!selectedConcept}>
-            Resources {selectedConcept ? `- ${selectedConcept.title}` : ""}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="concepts" className="space-y-6">
+      <div className="grid grid-cols-4 gap-x-4">
+        {/* Left Panel - Concepts List */}
+        <div className="flex-1 col-span-1 overflow-y-auto">
           {conceptsLoading && topicConcepts.length === 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-4">
               {[...Array(6)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
+                <Card key={i} className="p-4">
+                  <div className="space-y-3">
                     <Skeleton className="h-5 w-[160px]" />
                     <div className="flex gap-2">
                       <Skeleton className="h-4 w-[50px]" />
                       <Skeleton className="h-4 w-[60px]" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </CardContent>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -487,131 +484,77 @@ export default function LearningTopicDetail({
                   onDelete={() => handleDeleteConcept(concept.id)}
                   onManageNotes={() => handleManageNotes(concept)}
                   onManageResources={() => handleManageResources(concept)}
+                  isSelected={selectedConcept?.id === concept.id}
+                  onClick={() => {
+                    setSelectedConcept(concept);
+                    setSelectedView("notes");
+                    handleManageNotes(concept);
+                  }}
                 />
               ))}
             </div>
           )}
-        </TabsContent>
+        </div>
 
-        <TabsContent value="resources" className="space-y-4">
-          {/* Aggregate all resources from concepts */}
-          {(() => {
-            const allResources = topicConcepts.flatMap((concept) =>
-              (concept.resources || []).map((resource) => ({
-                ...resource,
-                conceptTitle: concept.title,
-              })),
-            );
-
-            return allResources.length === 0 ? (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Resources Yet</h3>
-                <p className="text-muted-foreground mb-6">
-                  Add concepts with learning resources to see them aggregated
-                  here.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {allResources.map((resource, index) => (
-                  <div key={index} className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-medium line-clamp-1">
-                        {resource.title}
-                      </h4>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {resource.type}
+        {/* Right Panel - Notes/Resources */}
+        {selectedConcept && (
+          <div className="flex-1 col-span-3">
+            <Card className="h-fit">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{selectedConcept.title}</CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <PriorityBadge priority={selectedConcept.priority} />
+                      <span className="text-sm text-muted-foreground">
+                        {selectedConcept.status.toLowerCase().replace("_", " ")}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      From: {resource.conceptTitle}
-                    </p>
-                    {resource.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {resource.description}
-                      </p>
-                    )}
-                    <a
-                      href={resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Open Resource
-                    </a>
                   </div>
-                ))}
-              </div>
-            );
-          })()}
-        </TabsContent>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedConcept(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </CardHeader>
 
-        <TabsContent value="notes" className="space-y-4">
-          {selectedConcept ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Notes for "{selectedConcept.title}"
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveTab("concepts")}
-                >
-                  Back to Concepts
-                </Button>
-              </div>
-              <ConceptNotesList
-                concept={selectedConcept}
-                notes={conceptNotes}
-                onNotesUpdate={handleNotesUpdate}
-              />
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <StickyNote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Select a Concept</h3>
-              <p className="text-muted-foreground">
-                Choose a concept to manage its notes.
-              </p>
-            </div>
-          )}
-        </TabsContent>
+              <CardContent>
+                <Tabs value={selectedView} onValueChange={(value) => setSelectedView(value as "notes" | "resources")}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="notes">
+                      <StickyNote className="h-4 w-4 mr-2" />
+                      Notes ({selectedConcept.notes?.length || 0})
+                    </TabsTrigger>
+                    <TabsTrigger value="resources">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Resources ({selectedConcept.resources?.length || 0})
+                    </TabsTrigger>
+                  </TabsList>
 
-        <TabsContent value="resources" className="space-y-4">
-          {selectedConcept ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Resources for "{selectedConcept.title}"
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveTab("concepts")}
-                >
-                  Back to Concepts
-                </Button>
-              </div>
-              <ConceptResourcesList
-                concept={selectedConcept}
-                resources={selectedConcept.resources || []}
-                onResourcesUpdate={handleResourcesUpdate}
-              />
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Select a Concept</h3>
-              <p className="text-muted-foreground">
-                Choose a concept to manage its resources.
-              </p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                  <TabsContent value="notes" className="space-y-4">
+                    <ConceptNotesList
+                      concept={selectedConcept}
+                      notes={conceptNotes}
+                      onNotesUpdate={handleNotesUpdate}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="resources" className="space-y-4">
+                    <ConceptResourcesList
+                      concept={selectedConcept}
+                      resources={selectedConcept.resources || []}
+                      onResourcesUpdate={handleResourcesUpdate}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

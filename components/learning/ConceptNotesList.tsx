@@ -35,12 +35,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import dynamic from "next/dynamic";
-
-const MDEditor = dynamic(
-  () => import("@uiw/react-md-editor").then((mod) => mod.default),
-  { ssr: false },
-);
+import MarkdownEditor from "@/components/notes/MarkdownEditor";
 
 import { LearningConcept, Note, NoteType } from "@/types/states";
 import {
@@ -99,6 +94,7 @@ const NoteCard = ({
   onCancelEdit: () => void;
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const form = useForm<NoteFormData>({
     resolver: zodResolver(noteFormSchema),
@@ -220,16 +216,24 @@ const NoteCard = ({
                 <FormItem>
                   <FormLabel>Content</FormLabel>
                   <FormControl>
-                    <div data-color-mode="light" className="w-full">
-                      <MDEditor
+                    <div className="w-full">
+                      <MarkdownEditor
                         value={field.value}
                         onChange={(value) => field.onChange(value || "")}
                         height={300}
                         preview="live"
                         hideToolbar={false}
-                        data-color-mode="light"
-                        previewOptions={{
-                          style: { backgroundColor: "transparent" },
+                        editable={true}
+                        onDoubleClick={() => {
+                          if (!isEditMode) {
+                            setIsEditMode(true);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && e.ctrlKey) {
+                            e.preventDefault();
+                            form.handleSubmit(handleSave)();
+                          }
                         }}
                       />
                     </div>
@@ -335,17 +339,18 @@ const NoteCard = ({
         <h4 className="font-medium text-base mb-2">{note.title}</h4>
       )}
       <div className="prose prose-sm dark:prose-invert max-w-none">
-        <MDEditor
+        <MarkdownEditor
           value={note.content}
+          onChange={() => {}}
           height={150}
           preview="preview"
           hideToolbar={true}
-          data-color-mode="light"
-          previewOptions={{
-            style: {
-              backgroundColor: "transparent",
-              padding: 0,
-            },
+          editable={false}
+          onDoubleClick={() => {
+            if (!isEditMode) {
+              setIsEditMode(true);
+              onEdit();
+            }
           }}
         />
       </div>

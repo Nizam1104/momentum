@@ -11,11 +11,9 @@ export default function Page( { children }: { children: React.ReactNode } ) {
       <AppSidebar />
       <SidebarInset>
         <Header />
-        <main>
-          <div className="flex-1">
+          <div className="flex-1 overflow-auto">
             {children}
           </div>
-        </main>
       </SidebarInset>
     </SidebarProvider>
   )

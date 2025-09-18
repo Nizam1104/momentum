@@ -1,30 +1,6 @@
-// components/project-management/TaskItem.tsx
 "use client";
 
-import React from "react";
-import { Task, TaskStatus } from "./enums";
-import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  MoreVertical,
-  Edit,
-  Trash2,
-  CalendarDays,
-  Flag,
-  CheckCircle,
-  Hourglass,
-  XCircle,
-  ListTodo,
-} from "lucide-react";
-import { formatDate, getPriorityConfig, getTaskStatusConfig } from "./utils";
-import { cn } from "@/lib/utils";
+import { UniversalTaskItem, Task } from "@/components/tasks/UniversalTaskItem";
 
 interface TaskItemProps {
   task: Task;
@@ -33,90 +9,26 @@ interface TaskItemProps {
   onEdit: (task: Task) => void;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({
-  task,
-  onUpdate,
-  onDelete,
-  onEdit,
-}) => {
-  const handleToggleComplete = (checked: boolean) => {
-    onUpdate({
-      ...task,
-      status: checked ? TaskStatus.COMPLETED : TaskStatus.TODO,
-      completedAt: checked ? new Date() : null,
-    });
+export const TaskItem = ({ task, onUpdate, onDelete, onEdit }: TaskItemProps) => {
+  const handleUpdate = (taskId: string, updates: Partial<Task>) => {
+    onUpdate({ ...task, ...updates });
   };
 
-  const getStatusIcon = (status: TaskStatus) => {
-    switch (status) {
-      case TaskStatus.COMPLETED:
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case TaskStatus.IN_PROGRESS:
-        return <Hourglass className="h-4 w-4 text-yellow-500" />;
-      case TaskStatus.CANCELLED:
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      default:
-        return <ListTodo className="h-4 w-4 text-muted-foreground" />;
-    }
+  const handleEdit = (taskToEdit: Task) => {
+    onEdit(taskToEdit);
   };
 
   return (
-    <Card className="p-3 hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-3">
-        <Checkbox
-          id={`task-${task.id}`}
-          checked={task.status === TaskStatus.COMPLETED}
-          onCheckedChange={handleToggleComplete}
-          className="mt-1"
-        />
-        <div className="flex-1 space-y-1">
-          <label
-            htmlFor={`task-${task.id}`}
-            className={cn(
-              "font-medium cursor-pointer",
-              task.status === TaskStatus.COMPLETED && "line-through text-muted-foreground"
-            )}
-          >
-            {task.title}
-          </label>
-          {task.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {task.description}
-            </p>
-          )}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Flag className="h-3 w-3" />
-              {getPriorityConfig(task.priority).text}
-            </div>
-            <div className="flex items-center gap-1">
-              {getStatusIcon(task.status)}
-              {getTaskStatusConfig(task.status).text}
-            </div>
-            {task.dueDate && (
-              <div className="flex items-center gap-1">
-                <CalendarDays className="h-3 w-3" />
-                {formatDate(task.dueDate)}
-              </div>
-            )}
-          </div>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(task)}>
-              <Edit className="mr-2 h-4 w-4" /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </Card>
+    <UniversalTaskItem
+      task={task}
+      variant="compact"
+      onUpdate={handleUpdate}
+      onDelete={onDelete}
+      onEdit={handleEdit}
+      showDueDate={true}
+      showStatus={true}
+      editable={true}
+      deletable={true}
+    />
   );
 };

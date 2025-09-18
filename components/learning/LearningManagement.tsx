@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, BookOpen, TrendingUp, Target } from "lucide-react";
+import { Plus, BookOpen, TrendingUp, Target, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -63,14 +63,6 @@ export default function LearningManagement() {
       setStatsLoading(false);
     }
   }, [session?.user?.id]);
-
-  // Fetch topics and stats when component mounts
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchTopics(session.user.id);
-      loadStats();
-    }
-  }, [session?.user?.id, fetchTopics, loadStats]);
 
   const handleCreateTopic = () => {
     setIsCreatingTopic(true);
@@ -140,16 +132,16 @@ export default function LearningManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
+          {selectedTopic && (
+            <Button variant="ghost" size="sm" onClick={handleBackToOverview}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Topics
+            </Button>
+          )}
           <Button onClick={handleShowOverview} size="sm" variant="outline">
             <TrendingUp className="h-4 w-4 mr-2" />
             Overview
           </Button>
-          {selectedTopic && (
-            <Button onClick={handleCreateConcept} size="sm" variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Concept
-            </Button>
-          )}
           <Button onClick={handleCreateTopic} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             New Topic
@@ -164,15 +156,7 @@ export default function LearningManagement() {
         </Alert>
       )}
 
-      {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="detail" disabled={!selectedTopic}>
-            {selectedTopic ? selectedTopic.title : "Select Topic"}
-          </TabsTrigger>
-        </TabsList>
-
         <TabsContent value="overview" className="space-y-6">
           {topics.length === 0 && !topicsLoading ? (
             <Card>
