@@ -19,6 +19,11 @@ export interface Day {
   lessons?: string | null;
   gratitude?: string | null;
   tomorrowFocus?: string | null;
+  energyLevel?: number | null;
+  moodRating?: number | null;
+  productivityRating?: number | null;
+  sleepHours?: number | null;
+  sleepQuality?: number | null;
   isCompleted: boolean;
   createdAt: Date;
   updatedAt?: Date | null;

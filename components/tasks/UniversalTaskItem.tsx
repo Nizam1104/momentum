@@ -126,7 +126,7 @@ export interface TaskItemProps {
 export const UniversalTaskItem: React.FC<TaskItemProps> = ({
   task,
   variant = "detailed",
-  showProject = false,
+  // showProject = false,
   showDueDate = true,
   showStatus = true,
   draggable = false,

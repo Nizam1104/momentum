@@ -9,7 +9,6 @@ import { Project, ProjectStatus, Priority } from "./enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -29,7 +28,6 @@ import { format } from "date-fns";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -59,14 +57,9 @@ const projectFormSchema = z.object({
     .string()
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
       message: "Invalid hex color format.",
-    })
-    .default("#60A5FA"), // Default to a blue color
-  status: z
-    .nativeEnum(ProjectStatus, { message: "Invalid project status." })
-    .default(ProjectStatus.ACTIVE),
-  priority: z
-    .nativeEnum(Priority, { message: "Invalid priority." })
-    .default(Priority.MEDIUM),
+    }),
+  status: z.nativeEnum(ProjectStatus, { message: "Invalid project status." }),
+  priority: z.nativeEnum(Priority, { message: "Invalid priority." }),
   startDate: z.date().optional().nullable(),
   dueDate: z.date().optional().nullable(),
 });

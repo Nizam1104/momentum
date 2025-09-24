@@ -2,60 +2,42 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Import components
-import DayComponent from "@/components/days/Day";
-import ProjectManagement from "@/components/project-management/ProjectManagement";
-import LearningManagement from "@/components/learning/LearningManagement";
 
 // Import stores
 import { useDayStore } from "@/stores/day";
 import { useProjectStore } from "@/stores/project";
 import { useLearningStore } from "@/stores/learning";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import DashboardTabs from "@/components/DashboardSearchParams";
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const { data: session, status } = useSession();
   const [isClient, setIsClient] = useState(false);
-  const [activeTab, setActiveTab] = useState("today");
-
   // Store selectors
   const {
-    selectedDay,
-    initialLoading: dayLoading,
     error: dayError,
     fetchTodayEntry,
   } = useDayStore();
 
   const {
-    projects,
-    initialLoading: projectLoading,
     error: projectError,
     fetchProjects,
   } = useProjectStore();
 
-  const { topics, topicsLoading, topicsError, fetchTopics } =
+  const { topicsError, fetchTopics } =
     useLearningStore();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Initialize tab from search params
-  useEffect(() => {
-    if (isClient) {
-      const tabId = searchParams.get('tab') || 'today';
-      setActiveTab(tabId);
-    }
-  }, [searchParams, isClient]);
-
+  
   // Fetch data when user session is available
   useEffect(() => {
     if (session?.user?.id && isClient) {
@@ -112,13 +94,6 @@ export default function DashboardPage() {
 
   const hasError = dayError || projectError || topicsError;
 
-  const handleTabChange = function(tabId: string) {
-    setActiveTab(tabId);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tabId);
-    router.replace(`dashboard?${params.toString()}`);
-  }
-
   return (
     <div className="container mx-auto p-2 space-y-3">
 
@@ -130,39 +105,9 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => {
-          handleTabChange(value)
-        }}
-        className="space-y-4"
-      >
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="learning">Learning</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="today" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-            <div className="lg:col-span-1">
-              <DayComponent day={selectedDay} isToday={true} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="projects" className="space-y-4">
-          <div className="h-[calc(100vh-200px)]">
-            <ProjectManagement />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="learning" className="space-y-4">
-          <div className="h-[calc(100vh-200px)]">
-            <LearningManagement />
-          </div>
-        </TabsContent>
-      </Tabs>
+      <Suspense fallback={<div>Loading tabs...</div>}>
+        <DashboardTabs />
+      </Suspense>
     </div>
   );
 }

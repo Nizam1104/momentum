@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { nanoid } from "nanoid";
 import {
   Form,
   FormControl,
@@ -18,8 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Loader2,
@@ -40,7 +37,6 @@ import MarkdownEditor from "@/components/notes/MarkdownEditor";
 import { LearningConcept, Note, NoteType } from "@/types/states";
 import {
   createConceptNote,
-  fetchConceptNotes,
   updateConceptNote,
   deleteConceptNote,
   archiveConceptNote,

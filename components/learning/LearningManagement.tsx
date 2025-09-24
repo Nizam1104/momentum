@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Plus, BookOpen, TrendingUp, Target, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -44,7 +44,6 @@ export default function LearningManagement() {
     conceptsError,
     isCreatingTopic,
     isCreatingConcept,
-    fetchTopics,
     setIsCreatingTopic,
     setIsCreatingConcept,
     setSelectedTopic,

@@ -11,14 +11,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
-  PlusCircle,
   Edit,
   Trash2,
   Flag,
   CalendarDays,
-  ListTodo,
   Info,
 } from "lucide-react";
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from "./utils";
@@ -55,15 +52,6 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
 
-  const handleAddTaskClick = () => {
-    setEditingTask(null);
-    setIsTaskFormOpen(true);
-  };
-
-  const handleEditTask = (task: ProjectTask) => {
-    setEditingTask(task);
-    setIsTaskFormOpen(true);
-  };
 
   const handleTaskSubmit = (
     taskData: Omit<ProjectTask, "id" | "createdAt" | "updatedAt"> | ProjectTask,
@@ -86,11 +74,11 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     description: task.description || undefined,
     status: task.status as UniversalTaskStatus,
     priority: task.priority as UniversalPriority,
-    dueDate: task.dueDate,
+    dueDate: task.dueDate || undefined,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     projectId: task.projectId,
-    completedAt: task.completedAt,
+    completedAt: task.completedAt || undefined,
   }));
 
   const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {

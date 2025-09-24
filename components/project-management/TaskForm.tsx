@@ -9,7 +9,6 @@ import { Task, TaskStatus, Priority } from "./enums";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -46,22 +45,10 @@ const taskFormSchema = z.object({
     .max(500, { message: "Description cannot exceed 500 characters." })
     .optional()
     .nullable(),
-  status: z
-    .nativeEnum(TaskStatus, { message: "Invalid task status." })
-    .default(TaskStatus.TODO),
-  priority: z
-    .nativeEnum(Priority, { message: "Invalid priority." })
-    .default(Priority.MEDIUM),
+  status: z.nativeEnum(TaskStatus, { message: "Invalid task status." }),
+  priority: z.nativeEnum(Priority, { message: "Invalid priority." }),
   dueDate: z.date().optional().nullable(),
-  estimatedMinutes: z.preprocess(
-    (val) => (val === "" ? null : Number(val)),
-    z
-      .number()
-      .int()
-      .min(0, { message: "Estimated minutes must be a positive number." })
-      .optional()
-      .nullable(),
-  ),
+  estimatedMinutes: z.number().int().min(0, { message: "Estimated minutes must be a positive number." }).optional().nullable(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;

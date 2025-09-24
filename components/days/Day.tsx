@@ -12,9 +12,10 @@ import DayTasks from "./DayTasks";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDayStore } from "@/stores/day";
+import { Day } from "@/components/project-management/enums";
 
 interface DayComponentProps {
-  day: any | null;
+  day: Day | null;
   isToday?: boolean;
 }
 

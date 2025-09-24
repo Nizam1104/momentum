@@ -1,4 +1,4 @@
-import { Home, Pen, Compass } from "lucide-react";
+import { Home, Compass } from "lucide-react";
 
 import Link from "next/link";
 

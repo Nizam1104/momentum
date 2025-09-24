@@ -17,8 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Loader2,
   Plus,
@@ -36,7 +34,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 
-import { LearningConcept, LearningResource } from "@/types/states";
+import { LearningResource } from "@/types/states";
 
 const resourceFormSchema = z.object({
   title: z
@@ -58,7 +56,6 @@ const resourceFormSchema = z.object({
 type ResourceFormData = z.infer<typeof resourceFormSchema>;
 
 interface ConceptResourcesListProps {
-  concept: LearningConcept;
   resources: LearningResource[];
   onResourcesUpdate: (resources: LearningResource[]) => void;
 }
@@ -353,7 +350,6 @@ const ResourceCard = ({
 };
 
 export default function ConceptResourcesList({
-  concept,
   resources,
   onResourcesUpdate,
 }: ConceptResourcesListProps) {

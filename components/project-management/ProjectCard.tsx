@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Edit, Trash2, Flag, CalendarDays, CheckCircle, Hourglass } from 'lucide-react';
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from './utils';
-import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
     project: Project;

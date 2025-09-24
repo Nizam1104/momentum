@@ -325,7 +325,7 @@ export default function DayNotes() {
           <FileText className="h-4 w-4" />
           <AlertTitle>No Notes Yet!</AlertTitle>
           <AlertDescription>
-            Click the "New Note" button to create your first note for today.
+            Click the &quot;New Note&quot; button to create your first note for today.
           </AlertDescription>
         </Alert>
       )}

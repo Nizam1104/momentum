@@ -1,6 +1,6 @@
 "use server"
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export const validateUserId = async function(req: NextRequest, userId: string) {
     const { searchParams } = new URL(req.nextUrl)

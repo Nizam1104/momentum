@@ -2,13 +2,12 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useDayStore } from "@/stores/day"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, Circle } from "lucide-react"
 
 export default function DaysChain() {
-  const { days, loading } = useDayStore();
+  const { days, initialLoading } = useDayStore();
   const [streak, setStreak] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
@@ -34,7 +33,7 @@ export default function DaysChain() {
     }
   }, [days]);
 
-  if (!isClient || loading) {
+  if (!isClient || initialLoading) {
     return (
       <div className="space-y-2">
         {[...Array(7)].map((_, i) => (

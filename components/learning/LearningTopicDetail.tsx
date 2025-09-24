@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,19 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ArrowLeft,
   Plus,
   Clock,
   Target,
   Calendar,
   BookOpen,
-  ExternalLink,
-  Edit,
-  Trash2,
   PlayCircle,
   CheckCircle,
   PauseCircle,
-  XCircle,
   Star,
   MoreVertical,
   StickyNote,
@@ -264,7 +259,6 @@ const ConceptCard = ({
 
 export default function LearningTopicDetail({
   topic,
-  onBack,
   onCreateConcept,
 }: LearningTopicDetailProps) {
   const {
@@ -277,7 +271,6 @@ export default function LearningTopicDetail({
     updateTopicProgress,
   } = useLearningStore();
 
-  const [activeTab, setActiveTab] = useState("concepts");
   const [selectedConcept, setSelectedConcept] =
     useState<LearningConcept | null>(null);
   const [conceptNotes, setConceptNotes] = useState<Note[]>([]);
@@ -376,21 +369,7 @@ export default function LearningTopicDetail({
     }
   };
 
-  const formatDate = (date: Date | null | undefined) => {
-    if (!date) return "Not set";
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(new Date(date));
-  };
-
   const topicConcepts = concepts.filter((c) => c.topicId === topic.id);
-  const completedConcepts = topicConcepts.filter(
-    (c) =>
-      c.status === LearningConceptStatus.COMPLETED ||
-      c.status === LearningConceptStatus.MASTERED,
-  );
 
   const isOverdue =
     topic.targetDate &&
@@ -544,7 +523,6 @@ export default function LearningTopicDetail({
 
                   <TabsContent value="resources" className="space-y-4">
                     <ConceptResourcesList
-                      concept={selectedConcept}
                       resources={selectedConcept.resources || []}
                       onResourcesUpdate={handleResourcesUpdate}
                     />

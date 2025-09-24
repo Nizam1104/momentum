@@ -27,12 +27,11 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
+import { TaskStatus } from "@/actions/clientActions";
 import {
   Project,
   Task,
-  ProjectStatus,
-  TaskStatus,
-} from "@/actions/clientActions";
+} from "./enums";
 
 export default function ProjectManagement() {
   const { data: session } = useSession();
@@ -40,10 +39,8 @@ export default function ProjectManagement() {
   // Store selectors
   const {
     projects,
-    selectedProject,
-    loading: projectLoading,
+    initialLoading: projectLoading,
     error: projectError,
-    setSelectedProject,
     fetchProjects,
     createProjectAsync,
     updateProjectAsync,
@@ -52,13 +49,12 @@ export default function ProjectManagement() {
 
   const {
     tasks,
-    loading: taskLoading,
+    initialLoading: taskLoading,
     error: taskError,
     fetchTasksByProject,
     createTaskAsync,
     updateTaskAsync,
     deleteTaskAsync,
-    updateTaskStatusAsync,
   } = useTaskStore();
 
   // Local state
@@ -89,7 +85,17 @@ export default function ProjectManagement() {
   }, [selectedProjectId, fetchTasksByProject]);
 
   const selectedProjectTasks = useMemo(() => {
-    return tasks.filter((task) => task.projectId === selectedProjectId);
+    return tasks.filter((task) => task.projectId === selectedProjectId).map(task => ({
+      ...task,
+      projectId: task.projectId || '',
+      description: task.description || undefined,
+      dueDate: task.dueDate || undefined,
+      completedAt: task.completedAt || undefined,
+      estimatedMinutes: task.estimatedMinutes || undefined,
+      actualMinutes: task.actualMinutes || undefined,
+      categoryId: task.categoryId || undefined,
+      parentId: task.parentId || undefined,
+    }));
   }, [selectedProjectId, tasks]);
 
   // Calculate project progress
@@ -128,6 +134,12 @@ export default function ProjectManagement() {
       if (session?.user?.id) {
         await createProjectAsync({
           ...newProjectData,
+          description: newProjectData.description || undefined,
+          startDate: newProjectData.startDate || undefined,
+          dueDate: newProjectData.dueDate || undefined,
+          completedAt: newProjectData.completedAt || undefined,
+          categoryId: newProjectData.categoryId || undefined,
+          parentId: newProjectData.parentId || undefined,
           userId: session.user.id,
         });
         setIsProjectFormOpen(false);
@@ -138,7 +150,15 @@ export default function ProjectManagement() {
 
   const handleUpdateProject = useCallback(
     async (updatedProject: Project) => {
-      await updateProjectAsync(updatedProject.id, updatedProject);
+      await updateProjectAsync(updatedProject.id, {
+        ...updatedProject,
+        description: updatedProject.description || undefined,
+        startDate: updatedProject.startDate || undefined,
+        dueDate: updatedProject.dueDate || undefined,
+        completedAt: updatedProject.completedAt || undefined,
+        categoryId: updatedProject.categoryId || undefined,
+        parentId: updatedProject.parentId || undefined,
+      });
       setIsProjectFormOpen(false);
       setEditingProject(null);
     },
@@ -169,25 +189,39 @@ export default function ProjectManagement() {
   const handleProjectSelect = useCallback(
     (projectId: string) => {
       setSelectedProjectId(projectId);
-      const project = projects.find((p) => p.id === projectId);
-      if (project) {
-        setSelectedProject(project);
-      }
     },
-    [projects, setSelectedProject],
+    [],
   );
 
   // Task Handlers
   const handleAddTask = useCallback(
     async (newTaskData: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
-      await createTaskAsync(newTaskData);
+      await createTaskAsync({
+        ...newTaskData,
+        description: newTaskData.description || undefined,
+        dueDate: newTaskData.dueDate || undefined,
+        completedAt: newTaskData.completedAt || undefined,
+        estimatedMinutes: newTaskData.estimatedMinutes || undefined,
+        actualMinutes: newTaskData.actualMinutes || undefined,
+        categoryId: newTaskData.categoryId || undefined,
+        parentId: newTaskData.parentId || undefined,
+      });
     },
     [createTaskAsync],
   );
 
   const handleUpdateTask = useCallback(
     async (updatedTask: Task) => {
-      await updateTaskAsync(updatedTask.id, updatedTask);
+      await updateTaskAsync(updatedTask.id, {
+        ...updatedTask,
+        description: updatedTask.description || undefined,
+        dueDate: updatedTask.dueDate || undefined,
+        completedAt: updatedTask.completedAt || undefined,
+        estimatedMinutes: updatedTask.estimatedMinutes || undefined,
+        actualMinutes: updatedTask.actualMinutes || undefined,
+        categoryId: updatedTask.categoryId || undefined,
+        parentId: updatedTask.parentId || undefined,
+      });
     },
     [updateTaskAsync],
   );

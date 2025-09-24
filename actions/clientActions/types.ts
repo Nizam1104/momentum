@@ -147,6 +147,11 @@ export interface Day extends BaseEntity {
   challenges?: string;
   lessons?: string;
   tomorrowFocus?: string;
+  energyLevel?: number;
+  moodRating?: number;
+  productivityRating?: number;
+  sleepHours?: number;
+  sleepQuality?: number;
   isCompleted: boolean;
 }
 

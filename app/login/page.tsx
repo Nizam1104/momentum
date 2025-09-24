@@ -1,36 +1,17 @@
 "use client"
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
+import LoginSearchParams from "@/components/LoginSearchParams";
 
-export default function AuthPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [mode, setMode] = useState("login");
-
-  useEffect(() => {
-    const modeParam = searchParams.get("mode");
-    if (modeParam === "register" || modeParam === "login") {
-      setMode(modeParam);
-    } else {
-      setMode("login"); // Default mode
-    }
-  }, [searchParams]);
+function AuthContent() {
+  const { mode, toggleMode } = LoginSearchParams();
 
   const handleSignin = async () => {
     await signIn('google');
-  };
-
-  const toggleMode = (newMode: string) => {
-    setMode(newMode);
-    // Update URL without page reload
-    const url = new URL(window.location);
-    url.searchParams.set('mode', newMode);
-    router.push(url.pathname + url.search, { scroll: false });
   };
 
   const isLoginMode = mode === "login";
@@ -86,5 +67,13 @@ export default function AuthPage() {
         </CardContent>
       </Card>
     </AuthLayout>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   );
 }

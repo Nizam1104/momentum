@@ -10,7 +10,7 @@ export interface User {
   emailVerified?: Date;
   image?: string;
   timezone: string;
-  preferences: Record<string, any>;
+  preferences: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -206,7 +206,7 @@ export interface Achievement {
   description: string;
   icon: string;
   points: number;
-  criteria: Record<string, any>; // Prisma Json type
+  criteria: Record<string, unknown>; // Prisma Json type
   userId: string;
   createdAt: Date;
   updatedAt: Date;
