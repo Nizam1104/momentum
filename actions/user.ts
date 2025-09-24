@@ -12,7 +12,6 @@ const fetchUser = async function(userId: string) {
         }
         userState.setUser(await res.json())
     } catch (error: any) {
-        // console.log(error.error)
         useAlert().showAlert({
             type: 'error',
             title: 'Error',

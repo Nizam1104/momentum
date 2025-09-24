@@ -65,8 +65,6 @@ export async function createProject(
   projectData: Omit<Project, "id" | "createdAt" | "updatedAt" | "progress">,
 ): Promise<ActionResult<Project>> {
   try {
-    console.log(projectData);
-    console.log(projectData.dueDate);
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
       .from("Project")

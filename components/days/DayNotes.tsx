@@ -112,7 +112,6 @@ export default function DayNotes() {
       (currentStoreNote.title !== localActiveNote.title ||
         currentStoreNote.content !== localActiveNote.content)
     ) {
-      console.log(localActiveNote.content);
       await updateNoteAsync(activeNoteId, {
         title: localActiveNote.title || "",
         content: localActiveNote.content,

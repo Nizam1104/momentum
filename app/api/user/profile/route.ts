@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(dbUser)
   } catch (error: any) {
-    console.log(error.message || 'Error fetching profile')
     return NextResponse.json({error: error.message}, { status: 500 })
   }
 }

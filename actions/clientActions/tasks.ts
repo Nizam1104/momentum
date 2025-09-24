@@ -75,9 +75,6 @@ export async function createTask(
       .select()
       .single();
 
-    // console.log("Created task:", data);
-    console.log("Created task:", error);
-
     if (error) {
       console.error("Error creating task:", error);
       return { success: false, error: error.message };

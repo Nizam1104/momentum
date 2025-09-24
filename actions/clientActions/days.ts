@@ -304,7 +304,6 @@ export async function deleteDayNote(
 export async function getDayTasks(
   dayId: string,
 ): Promise<ActionResult<Task[]>> {
-  console.log(dayId);
   try {
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
@@ -312,8 +311,6 @@ export async function getDayTasks(
       .select("*")
       .eq("dayId", dayId)
       .order("createdAt", { ascending: false });
-
-    console.log("Day tasks fetched:", data);
 
     if (error) {
       console.error("Error fetching day tasks:", error);
@@ -334,9 +331,6 @@ export async function createDayTask(
   try {
     const supabase = await getSupabaseClient();
     const userId = await getUserId();
-    console.log("User ID:", userId);
-    console.log("User ID: type", typeof userId);
-    console.log("Task data:", taskData);
     const { data, error } = await supabase
       .from("Task")
       .insert({

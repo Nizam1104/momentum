@@ -31,7 +31,6 @@ export async function generateSupabaseJWT(): Promise<string> {
       supabaseJwtSecret,
       { algorithm: "HS256" },
     );
-    console.log(token);
     return token;
   }
 

@@ -13,10 +13,8 @@ const toUser = (user: any): User => {
 };
 
 export const fetchUser = async function () {
-  console.log("fetch user called");
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase.from("User").select("*");
-  console.log("user data", data);
 
   if (error) {
     console.error("Error fetching user:", error);
