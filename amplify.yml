@@ -1,9 +1,13 @@
 version: 1
 frontend:
+  runtime: nodejs20.x
   phases:
+    install: # <-- NEW PHASE ADDED HERE
+      commands:
+        - npm ci # Use npm ci for clean installs based on package-lock.json (recommended for CI/CD)
+                  # or you can use `npm install` if you don't have a package-lock.json or prefer it.
     preBuild:
       commands:
-      - npm install
       - env | grep -e AUTH_SECRET >> .env.production
       - env | grep -e GOOGLE_CLIENT_ID >> .env.production
       - env | grep -e GOOGLE_CLIENT_SECRET >> .env.production
