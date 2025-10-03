@@ -5,7 +5,7 @@ frontend:
       commands:
       - env | grep -e FIREBASE_PRIVATE_KEY >> .env.production || true
       - env | grep -e FIREBASE_PROJECT_ID >> .env.production || true
-      - env | grep -e FIREBASE_CLIENT_EMAIL >> .env.production
+      - env | grep -e FIREBASE_CLIENT_EMAIL >> .env.production || true
       - env | grep -e GOOGLE_APPLICATION_CREDENTIALS >> .env.production || true
       - env | grep -e AUTH_SECRET >> .env.production || true
       - env | grep -e GOOGLE_CLIENT_ID >> .env.production || true
