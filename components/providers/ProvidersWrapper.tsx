@@ -4,7 +4,6 @@ import { SessionProvider } from "next-auth/react";
 import React from "react";
 import AppInitialiser from "./AppInitialiser";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { AlertProvider } from "@/components/providers/AlertProvider";
 
 export default function ProvidersWrapper({
   children,
@@ -21,11 +20,9 @@ export default function ProvidersWrapper({
         enableSystem
         disableTransitionOnChange
         >
-        <AlertProvider>
         <AppInitialiser>
           {children}
         </AppInitialiser>
-        </AlertProvider>
       </ThemeProvider>
     </SessionProvider>
   );

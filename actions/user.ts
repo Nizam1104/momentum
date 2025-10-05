@@ -1,5 +1,4 @@
 import { useUserStore } from "@/stores/user"
-import { useAlert } from "@/components/providers/AlertProvider"
 
 const fetchUser = async function(userId: string) {
     const userState = useUserStore.getState()
@@ -12,11 +11,8 @@ const fetchUser = async function(userId: string) {
         }
         userState.setUser(await res.json())
     } catch (error: any) {
-        useAlert().showAlert({
-            type: 'error',
-            title: 'Error',
-            text: error.error || ''
-        })
+        // TODO: Replace with shadcn dialog or other error handling
+        console.error('Error fetching user:', error.error || error);
     } finally {
         userState.setLoading(false)
     }
