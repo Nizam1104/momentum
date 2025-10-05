@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import TabsNavigation from "./TabsNavigation";
 import LightDark from "@/components/utils/LightDark";
 
 export default function Header() {
@@ -12,12 +13,15 @@ export default function Header() {
         className="mr-2 data-[orientation=vertical]:h-4"
       />
       <div className="flex items-center justify-between w-full">
-      <Link href="/">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-semibold">Momentum</span>
+        <Link href="/">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-semibold">Momentum</span>
+          </div>
+        </Link>
+        <div className="flex items-center gap-4">
+          <TabsNavigation />
+          <LightDark />
         </div>
-      </Link>
-      <LightDark />
       </div>
     </header>
   );

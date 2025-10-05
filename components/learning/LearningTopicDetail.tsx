@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -275,6 +274,8 @@ export default function LearningTopicDetail({
     useState<LearningConcept | null>(null);
   const [conceptNotes, setConceptNotes] = useState<Note[]>([]);
   const [selectedView, setSelectedView] = useState<"concepts" | "notes" | "resources">("concepts");
+  const [triggerNoteCreate, setTriggerNoteCreate] = useState(false);
+  const [triggerResourceCreate, setTriggerResourceCreate] = useState(false);
 
   // Fetch concepts for this topic
   useEffect(() => {
@@ -371,43 +372,8 @@ export default function LearningTopicDetail({
 
   const topicConcepts = concepts.filter((c) => c.topicId === topic.id);
 
-  const isOverdue =
-    topic.targetDate &&
-    new Date(topic.targetDate) < new Date() &&
-    topic.status !== LearningTopicStatus.COMPLETED;
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Separator orientation="vertical" className="h-6" />
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: topic.color }}
-              />
-              <span className=" -mt-1.5">
-                {topic.title}
-              </span>
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <PriorityBadge priority={topic.priority} />
-              <Badge
-                variant="outline"
-                className={`text-xs ${isOverdue ? "-red-200 text-red-700" : ""}`}
-              >
-                {topic.status.toLowerCase().replace("_", " ")}
-              </Badge>
-            </div>
-          </div>
-        </div>
-        <Button onClick={onCreateConcept}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Concept
-        </Button>
-      </div>
 
       {/* Error Alert */}
       {conceptsError && (
@@ -502,22 +468,48 @@ export default function LearningTopicDetail({
 
               <CardContent>
                 <Tabs value={selectedView} onValueChange={(value) => setSelectedView(value as "notes" | "resources")}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="notes">
-                      <StickyNote className="h-4 w-4 mr-2" />
-                      Notes ({selectedConcept.notes?.length || 0})
-                    </TabsTrigger>
-                    <TabsTrigger value="resources">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Resources ({selectedConcept.resources?.length || 0})
-                    </TabsTrigger>
-                  </TabsList>
+                  <div className="flex items-center justify-between mb-4">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="notes">
+                        <StickyNote className="h-4 w-4 mr-2" />
+                        Notes ({selectedConcept.notes?.length || 0})
+                      </TabsTrigger>
+                      <TabsTrigger value="resources">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Resources ({selectedConcept.resources?.length || 0})
+                      </TabsTrigger>
+                    </TabsList>
+                    <div className="ml-4">
+                      {selectedView === "notes" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setTriggerNoteCreate(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Note
+                        </Button>
+                      )}
+                      {selectedView === "resources" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setTriggerResourceCreate(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Resource
+                        </Button>
+                      )}
+                    </div>
+                  </div>
 
                   <TabsContent value="notes" className="space-y-4">
                     <ConceptNotesList
                       concept={selectedConcept}
                       notes={conceptNotes}
                       onNotesUpdate={handleNotesUpdate}
+                      triggerCreate={triggerNoteCreate}
+                      onTriggeredCreate={() => setTriggerNoteCreate(false)}
                     />
                   </TabsContent>
 
@@ -525,6 +517,8 @@ export default function LearningTopicDetail({
                     <ConceptResourcesList
                       resources={selectedConcept.resources || []}
                       onResourcesUpdate={handleResourcesUpdate}
+                      triggerCreate={triggerResourceCreate}
+                      onTriggeredCreate={() => setTriggerResourceCreate(false)}
                     />
                   </TabsContent>
                 </Tabs>

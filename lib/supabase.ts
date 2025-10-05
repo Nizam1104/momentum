@@ -20,18 +20,15 @@ async function getCachedOrNewSupabaseJWT(): Promise<string> {
 
   // 1. Check if we have a valid cached JWT
   if (cachedJWT && jwtExpiry && now < jwtExpiry) {
-    // console.log("Using cached Supabase JWT."); // For debugging
     return cachedJWT;
   }
 
   // 2. If a JWT is currently being generated, wait for that process to complete
   if (jwtGenerationPromise) {
-    // console.log("Waiting for ongoing Supabase JWT generation..."); // For debugging
     return jwtGenerationPromise;
   }
 
   // 3. No valid cached JWT and no ongoing generation, so initiate a new generation
-  // console.log("Initiating new Supabase JWT generation..."); // For debugging
   jwtGenerationPromise = (async () => {
     try {
       const newJWT = await generateSupabaseJWT();
@@ -40,7 +37,6 @@ async function getCachedOrNewSupabaseJWT(): Promise<string> {
       cachedJWT = newJWT;
       // Calculate expiry based on 'now' when the generation started, plus the duration
       jwtExpiry = now + JWT_EXPIRY_DURATION_MS;
-      // console.log("New Supabase JWT generated and cached."); // For debugging
       return newJWT;
     } finally {
       // Clear the promise once it resolves or rejects, allowing new generations later

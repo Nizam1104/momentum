@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -59,6 +59,8 @@ interface ConceptNotesListProps {
   concept: LearningConcept;
   notes: Note[];
   onNotesUpdate: (notes: Note[]) => void;
+  triggerCreate?: boolean;
+  onTriggeredCreate?: () => void;
 }
 
 const NoteTypeColors = {
@@ -338,7 +340,7 @@ const NoteCard = ({
         <MarkdownEditor
           value={note.content}
           onChange={() => {}}
-          height={150}
+          height={400}
           preview="preview"
           hideToolbar={true}
           editable={false}
@@ -365,11 +367,20 @@ export default function ConceptNotesList({
   concept,
   notes,
   onNotesUpdate,
+  triggerCreate,
+  onTriggeredCreate,
 }: ConceptNotesListProps) {
   const { data: session } = useSession();
   const [isCreating, setIsCreating] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (triggerCreate && !isCreating) {
+      handleCreateNote();
+      onTriggeredCreate?.();
+    }
+  }, [triggerCreate, isCreating, onTriggeredCreate]);
 
   const handleCreateNote = () => {
     setIsCreating(true);
@@ -498,22 +509,6 @@ export default function ConceptNotesList({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium">Notes ({notes.length})</h3>
-        {!isCreating && (
-          <Button
-            onClick={handleCreateNote}
-            size="sm"
-            variant="outline"
-            disabled={loading}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Note
-          </Button>
-        )}
-      </div>
-
       {/* Create New Note Form */}
       {isCreating && (
         <div className="mb-4">

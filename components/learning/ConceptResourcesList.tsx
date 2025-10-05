@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -58,6 +58,8 @@ type ResourceFormData = z.infer<typeof resourceFormSchema>;
 interface ConceptResourcesListProps {
   resources: LearningResource[];
   onResourcesUpdate: (resources: LearningResource[]) => void;
+  triggerCreate?: boolean;
+  onTriggeredCreate?: () => void;
 }
 
 const resourceTypeIcons = {
@@ -352,9 +354,18 @@ const ResourceCard = ({
 export default function ConceptResourcesList({
   resources,
   onResourcesUpdate,
+  triggerCreate,
+  onTriggeredCreate,
 }: ConceptResourcesListProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (triggerCreate && !isCreating) {
+      handleCreateResource();
+      onTriggeredCreate?.();
+    }
+  }, [triggerCreate, isCreating, onTriggeredCreate]);
 
   const handleCreateResource = () => {
     setIsCreating(true);
@@ -398,17 +409,6 @@ export default function ConceptResourcesList({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium">Resources ({resources.length})</h3>
-        {!isCreating && (
-          <Button onClick={handleCreateResource} size="sm" variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Resource
-          </Button>
-        )}
-      </div>
-
       {/* Create New Resource Form */}
       {isCreating && (
         <div className="mb-4">

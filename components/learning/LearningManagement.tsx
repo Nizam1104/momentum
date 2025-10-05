@@ -8,10 +8,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import { PriorityBadge } from "../shared/PriorityBadge";
+import { Badge } from "../ui/badge";
 
 import { useLearningStore } from "@/stores/learning";
 import { getLearningStats } from "@/actions/clientActions/learning";
-import { LearningTopic } from "@/types/states";
+import { LearningTopic, LearningTopicStatus } from "@/types/states";
 
 import LearningTopicsList from "./LearningTopicsList";
 import CreateTopicDialog from "./CreateTopicDialog";
@@ -126,25 +129,66 @@ export default function LearningManagement() {
 
   const hasError = topicsError || conceptsError;
 
+  const isOverdue = selectedTopic
+    ? selectedTopic.targetDate &&
+      new Date(selectedTopic.targetDate) < new Date() &&
+      selectedTopic.status !== LearningTopicStatus.COMPLETED
+    : false;
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+        <div>
           {selectedTopic && (
-            <Button variant="ghost" size="sm" onClick={handleBackToOverview}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Topics
-            </Button>
+            <div className="flex items-center justify-between space-x-8">
+              <div className="flex items-center gap-4">
+                <Separator className="h-6" />
+                <div>
+                  <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: selectedTopic.color }}
+                    />
+                    <span className=" -mt-1.5">{selectedTopic.title}</span>
+                  </h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <PriorityBadge priority={selectedTopic.priority} />
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${
+                        isOverdue ? "-red-200 text-red-700" : ""
+                      }`}
+                    >
+                      {selectedTopic.status.toLowerCase().replace("_", " ")}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <Button size={"sm"} onClick={handleCreateConcept}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Concept
+              </Button>
+            </div>
           )}
-          <Button onClick={handleShowOverview} size="sm" variant="outline">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Overview
-          </Button>
-          <Button onClick={handleCreateTopic} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            New Topic
-          </Button>
+        </div>
+        <div>
+          <div className="flex gap-2">
+            {selectedTopic && (
+              <Button variant="ghost" size="sm" onClick={handleBackToOverview}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Topics
+              </Button>
+            )}
+            <Button onClick={handleShowOverview} size="sm" variant="outline">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Overview
+            </Button>
+            <Button onClick={handleCreateTopic} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              New Topic
+            </Button>
+          </div>
         </div>
       </div>
 
