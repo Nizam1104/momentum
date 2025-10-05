@@ -225,7 +225,7 @@ const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isAnimating, data, animationDuration, delay, getBezierPoint]);
+  }, [isAnimating, data, animationDuration, delay, getBezierPoint, onAnimationComplete]);
 
   return (
     <span

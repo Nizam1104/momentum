@@ -4,8 +4,6 @@ import {
   LearningConcept,
   LearningTopicStatus,
   LearningConceptStatus,
-  Priority,
-  LearningResource,
   Note,
   NoteType,
 } from "@/types/states";
