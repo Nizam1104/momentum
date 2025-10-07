@@ -7,19 +7,12 @@ ALTER TABLE "public"."Task" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."TaskCompletion" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Goal" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."DailyGoal" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."Habit" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."HabitLog" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."TimeEntry" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Category" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Tag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."NoteTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."ProjectTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."TaskTag" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."GoalTag" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."HabitTag" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."Template" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."Achievement" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "public"."UserAchievement" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."LearningTopic" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."LearningConcept" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."LearningTopicTag" ENABLE ROW LEVEL SECURITY;
@@ -286,71 +279,28 @@ ON "public"."Note"
 AS PERMISSIVE
 FOR SELECT
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "Note"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Note"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Category" WHERE "Category".id = "Note"."categoryId" AND "Category"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    ("dayId" IS NULL AND "projectId" IS NULL AND "categoryId" IS NULL)
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can insert own notes"
 ON "public"."Note"
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
-WITH CHECK (
-    ("dayId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "Note"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("projectId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Note"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("categoryId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Category" WHERE "Category".id = "Note"."categoryId" AND "Category"."userId" = (auth.jwt() ->> 'sub')
-    ))
-);
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can update own notes"
 ON "public"."Note"
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "Note"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Note"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Category" WHERE "Category".id = "Note"."categoryId" AND "Category"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    ("dayId" IS NULL AND "projectId" IS NULL AND "categoryId" IS NULL)
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can delete own notes"
 ON "public"."Note"
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "Note"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Note"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    EXISTS (
-        SELECT 1 FROM "public"."Category" WHERE "Category".id = "Note"."categoryId" AND "Category"."userId" = (auth.jwt() ->> 'sub')
-    ) OR
-    ("dayId" IS NULL AND "projectId" IS NULL AND "categoryId" IS NULL)
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 -- ===========================================
 -- PROJECT TABLE POLICIES
@@ -393,44 +343,28 @@ ON "public"."Task"
 AS PERMISSIVE
 FOR SELECT
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Task"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can insert own tasks"
 ON "public"."Task"
 AS PERMISSIVE
 FOR INSERT
 TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Task"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can update own tasks"
 ON "public"."Task"
 AS PERMISSIVE
 FOR UPDATE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Task"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 CREATE POLICY "Users can delete own tasks"
 ON "public"."Task"
 AS PERMISSIVE
 FOR DELETE
 TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "Task"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
+USING ("userId" = (auth.jwt() ->> 'sub'));
 
 -- ===========================================
 -- TASK COMPLETION TABLE POLICIES
@@ -560,165 +494,7 @@ USING (
     )
 );
 
--- ===========================================
--- HABIT TABLE POLICIES
--- ===========================================
 
-CREATE POLICY "Users can view own habits"
-ON "public"."Habit"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can insert own habits"
-ON "public"."Habit"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can update own habits"
-ON "public"."Habit"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can delete own habits"
-ON "public"."Habit"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
--- ===========================================
--- HABIT LOG TABLE POLICIES
--- ===========================================
-
-CREATE POLICY "Users can view own habit logs"
-ON "public"."HabitLog"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "HabitLog"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
-CREATE POLICY "Users can insert own habit logs"
-ON "public"."HabitLog"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "HabitLog"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
-CREATE POLICY "Users can update own habit logs"
-ON "public"."HabitLog"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "HabitLog"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
-CREATE POLICY "Users can delete own habit logs"
-ON "public"."HabitLog"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "HabitLog"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
--- ===========================================
--- TIME ENTRY TABLE POLICIES
--- ===========================================
-
-CREATE POLICY "Users can view own time entries"
-ON "public"."TimeEntry"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-    ("dayId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "TimeEntry"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("projectId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task"
-        JOIN "public"."Project" ON "Project".id = "Task"."projectId"
-        WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ))
-);
-
-CREATE POLICY "Users can insert own time entries"
-ON "public"."TimeEntry"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (
-    ("dayId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "TimeEntry"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("projectId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task"
-        JOIN "public"."Project" ON "Project".id = "Task"."projectId"
-        WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ))
-);
-
-CREATE POLICY "Users can update own time entries"
-ON "public"."TimeEntry"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (
-    ("dayId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "TimeEntry"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("projectId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task"
-        JOIN "public"."Project" ON "Project".id = "Task"."projectId"
-        WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ))
-);
-
-CREATE POLICY "Users can delete own time entries"
-ON "public"."TimeEntry"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING (
-    ("dayId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Day" WHERE "Day".id = "TimeEntry"."dayId" AND "Day"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("projectId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Project" WHERE "Project".id = "TimeEntry"."projectId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    )) AND
-    ("taskId" IS NULL OR EXISTS (
-        SELECT 1 FROM "public"."Task"
-        JOIN "public"."Project" ON "Project".id = "Task"."projectId"
-        WHERE "Task".id = "TimeEntry"."taskId" AND "Project"."userId" = (auth.jwt() ->> 'sub')
-    ))
-);
 
 -- ===========================================
 -- CATEGORY TABLE POLICIES
@@ -924,135 +700,7 @@ USING (
     )
 );
 
--- Habit Tags
-CREATE POLICY "Users can view own habit tags"
-ON "public"."HabitTag"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Tag" WHERE "Tag".id = "HabitTag"."tagId" AND "Tag"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
 
-CREATE POLICY "Users can insert own habit tags"
-ON "public"."HabitTag"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM "public"."Tag" WHERE "Tag".id = "HabitTag"."tagId" AND "Tag"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
-CREATE POLICY "Users can delete own habit tags"
-ON "public"."HabitTag"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING (
-    EXISTS (
-        SELECT 1 FROM "public"."Tag" WHERE "Tag".id = "HabitTag"."tagId" AND "Tag"."userId" = (auth.jwt() ->> 'sub')
-    )
-);
-
--- ===========================================
--- TEMPLATE TABLE POLICIES
--- ===========================================
-
-CREATE POLICY "Users can view own templates"
-ON "public"."Template"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can insert own templates"
-ON "public"."Template"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can update own templates"
-ON "public"."Template"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can delete own templates"
-ON "public"."Template"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
--- ===========================================
--- ACHIEVEMENT TABLE POLICIES
--- ===========================================
-
-CREATE POLICY "Users can view own achievements"
-ON "public"."Achievement"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can insert own achievements"
-ON "public"."Achievement"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can update own achievements"
-ON "public"."Achievement"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can delete own achievements"
-ON "public"."Achievement"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
--- ===========================================
--- USER ACHIEVEMENT TABLE POLICIES
--- ===========================================
-
-CREATE POLICY "Users can view own user achievements"
-ON "public"."UserAchievement"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can insert own user achievements"
-ON "public"."UserAchievement"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can update own user achievements"
-ON "public"."UserAchievement"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
-
-CREATE POLICY "Users can delete own user achievements"
-ON "public"."UserAchievement"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING ("userId" = (auth.jwt() ->> 'sub'));
 
 -- ===========================================
 -- AUTH TABLES POLICIES (NextAuth/AuthJS)

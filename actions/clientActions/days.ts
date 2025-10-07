@@ -8,7 +8,6 @@ import {
   Task,
   NoteType,
   TaskStatus,
-  Priority,
 } from "./types";
 import { nanoid } from "nanoid";
 import { getUserId } from "@/utils/shared";
@@ -54,6 +53,8 @@ export async function getTodayEntry(
       .eq("userId", userId)
       .eq("date", today.toISOString().split("T")[0])
       .single();
+
+    console.log('error', error)
 
     if (error) {
       if (error.code === "PGRST116") {
