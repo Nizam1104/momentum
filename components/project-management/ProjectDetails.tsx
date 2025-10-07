@@ -1,7 +1,42 @@
 "use client";
 
 import React, { useState } from "react";
-import { Project, Task, TaskStatus, Priority } from "@/types/states";
+import { Project as BaseProject, Task as BaseTask, TaskStatus as BaseTaskStatus, Priority as BasePriority } from "@/types/states";
+import { Task, TaskStatus, Priority } from "./enums";
+
+// Extended Project interface with progress
+interface Project extends BaseProject {
+  progress: number;
+}
+
+// Type mapping between BaseTask and Task interfaces
+const mapToTaskInterface = (baseTask: BaseTask): UniversalTask => ({
+  id: baseTask.id,
+  title: baseTask.title,
+  description: baseTask.description || undefined,
+  status: baseTask.status as UniversalTaskStatus,
+  priority: baseTask.priority as UniversalPriority,
+  dueDate: baseTask.dueDate || undefined,
+  createdAt: baseTask.createdAt,
+  updatedAt: baseTask.updatedAt || undefined,
+  projectId: baseTask.projectId || undefined,
+});
+
+
+const convertBaseTaskToTaskForm = (baseTask: BaseTask): Task => ({
+  id: baseTask.id,
+  title: baseTask.title,
+  description: baseTask.description || undefined,
+  status: baseTask.status as TaskStatus,
+  priority: baseTask.priority as Priority,
+  dueDate: baseTask.dueDate || undefined,
+  userId: baseTask.userId,
+  projectId: baseTask.projectId || undefined,
+  categoryId: baseTask.categoryId || undefined,
+  parentId: baseTask.parentId || undefined,
+  createdAt: baseTask.createdAt,
+  updatedAt: baseTask.updatedAt || new Date(),
+});
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,11 +66,11 @@ import { TaskForm } from "./TaskForm";
 
 interface ProjectDetailsProps {
   project: Project;
-  tasks: Task[];
+  tasks: BaseTask[];
   onEditProject: (project: Project) => void;
   onDeleteProject: (projectId: string) => void;
-  onAddTask: (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateTask: (updatedTask: Task) => void;
+  onAddTask: (newTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt">) => void;
+  onUpdateTask: (updatedTask: BaseTask) => void;
   onDeleteTask: (taskId: string, projectId: string) => void;
 }
 
@@ -49,78 +84,101 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onDeleteTask,
 }) => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-
+  const [editingTask, setEditingTask] = useState<BaseTask | null>(null);
 
   const handleTaskSubmit = (
-    taskData: Omit<Task, "id" | "createdAt" | "updatedAt"> | Task,
+    taskData: Omit<Task, "createdAt" | "updatedAt"> | Task,
   ) => {
     if ("id" in taskData) {
-      // It's an existing task
-      onUpdateTask(taskData as Task);
+      // It's an existing task - convert back to BaseTask interface
+      const taskWithId = taskData as Task;
+      const baseTaskData: BaseTask = {
+        id: taskWithId.id,
+        title: taskWithId.title,
+        description: taskWithId.description || null,
+        status: taskWithId.status as BaseTaskStatus,
+        priority: taskWithId.priority as BasePriority,
+        dueDate: taskWithId.dueDate || null,
+        userId: project.userId,
+        projectId: taskWithId.projectId || project.id,
+        categoryId: taskWithId.categoryId || null,
+        parentId: taskWithId.parentId || null,
+        createdAt: taskWithId.createdAt,
+        updatedAt: new Date(),
+      };
+      onUpdateTask(baseTaskData);
     } else {
-      // It's a new task
-      onAddTask({ ...taskData, projectId: project.id });
+      // It's a new task - convert to BaseTask interface
+      const taskWithoutId = taskData as Omit<Task, "createdAt" | "updatedAt">;
+      const newBaseTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt"> = {
+        title: taskWithoutId.title,
+        description: taskWithoutId.description || null,
+        status: taskWithoutId.status as BaseTaskStatus,
+        priority: taskWithoutId.priority as BasePriority,
+        dueDate: taskWithoutId.dueDate || null,
+        userId: project.userId,
+        projectId: project.id,
+        categoryId: taskWithoutId.categoryId || null,
+        parentId: taskWithoutId.parentId || null,
+      };
+      onAddTask(newBaseTask);
     }
     setIsTaskFormOpen(false);
     setEditingTask(null);
   };
 
+  
   // Convert tasks to universal format
-  const universalTasks: UniversalTask[] = tasks.map(task => ({
-    id: task.id,
-    title: task.title,
-    description: task.description || undefined,
-    status: task.status as UniversalTaskStatus,
-    priority: task.priority as UniversalPriority,
-    dueDate: task.dueDate || undefined,
-    createdAt: task.createdAt,
-    updatedAt: task.updatedAt || undefined,
-    projectId: task.projectId || undefined,
-  }));
+  const universalTasks: UniversalTask[] = tasks.map(task => mapToTaskInterface(task));
 
-  const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
-    onAddTask({
+  const handleCreateTask = (newTask: Omit<UniversalTask, "id" | "createdAt" | "updatedAt">) => {
+    const baseTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt"> = {
       title: newTask.title,
-      description: newTask.description,
-      priority: newTask.priority as Priority,
-      status: newTask.status as TaskStatus,
-      dueDate: newTask.dueDate,
+      description: newTask.description || null,
+      priority: newTask.priority as BasePriority,
+      status: newTask.status as BaseTaskStatus,
+      dueDate: newTask.dueDate || null,
       projectId: project.id,
       userId: project.userId,
-          });
+      categoryId: null,
+      parentId: null,
+    };
+    onAddTask(baseTask);
   };
 
-  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+  const handleUpdateTask = (taskId: string, updates: Partial<UniversalTask>) => {
     const existingTask = tasks.find(t => t.id === taskId);
     if (!existingTask) return;
 
-    onUpdateTask({
+    const updatedBaseTask: BaseTask = {
       ...existingTask,
       title: updates.title || existingTask.title,
-      description: updates.description || existingTask.description,
-      priority: updates.priority as Priority || existingTask.priority,
-      status: updates.status as TaskStatus || existingTask.status,
-      dueDate: updates.dueDate || existingTask.dueDate,
-          });
+      description: updates.description !== undefined ? (updates.description || null) : existingTask.description,
+      priority: (updates.priority as BasePriority) || existingTask.priority,
+      status: (updates.status as BaseTaskStatus) || existingTask.status,
+      dueDate: updates.dueDate !== undefined ? (updates.dueDate || null) : existingTask.dueDate,
+      updatedAt: new Date(),
+    };
+    onUpdateTask(updatedBaseTask);
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = (taskId: string) => {
     onDeleteTask(taskId, project.id);
   };
 
-  const handleToggleTask = async (taskId: string, currentStatus: UniversalTaskStatus) => {
+  const handleToggleTask = (taskId: string, currentStatus: UniversalTaskStatus) => {
     const existingTask = tasks.find(t => t.id === taskId);
     if (!existingTask) return;
 
     const newStatus = currentStatus === UniversalTaskStatus.COMPLETED
-      ? TaskStatus.TODO
-      : TaskStatus.COMPLETED;
+      ? BaseTaskStatus.TODO
+      : BaseTaskStatus.COMPLETED;
 
     onUpdateTask({
       ...existingTask,
       status: newStatus,
-          });
+      updatedAt: new Date(),
+    });
   };
 
   return (
@@ -195,7 +253,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
             <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
           </DialogHeader>
           <TaskForm
-            initialData={editingTask}
+            initialData={editingTask ? convertBaseTaskToTaskForm(editingTask) : null}
             projectId={project.id}
             onSubmit={handleTaskSubmit}
             onCancel={() => {

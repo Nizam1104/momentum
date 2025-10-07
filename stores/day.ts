@@ -68,7 +68,7 @@ interface DayState {
   createNoteAsync: (
     dayId: string,
     noteData: { title?: string; content: string },
-  ) => Promise<void>;
+  ) => Promise<Note | null>;
   updateNoteAsync: (
     noteId: string,
     updates: { title?: string; content?: string },
@@ -247,13 +247,16 @@ export const useDayStore = create<DayState>((set, get) => ({
         set((state) => ({
           notes: [result.data!, ...state.notes],
         }));
+        return result.data;
       } else {
         set({
           notesError: result.error || "Failed to create note",
         });
+        return null;
       }
     } catch (error) {
       set({ notesError: "Failed to create note" });
+      return null;
     } finally {
       get().setNoteCreating(false);
     }

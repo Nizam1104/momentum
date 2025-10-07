@@ -27,11 +27,19 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { TaskStatus } from "@/actions/clientActions";
 import {
-  Project,
+  ProjectStatus,
+  TaskStatus,
+} from "@/types/states";
+import type {
+  Project as BaseProject,
   Task,
-} from "./enums";
+} from "@/types/states";
+
+// Extended Project interface with progress
+interface Project extends BaseProject {
+  progress: number;
+}
 
 export default function ProjectManagement() {
   const { data: session } = useSession();
@@ -90,9 +98,6 @@ export default function ProjectManagement() {
       projectId: task.projectId || '',
       description: task.description || undefined,
       dueDate: task.dueDate || undefined,
-      completedAt: task.completedAt || undefined,
-      estimatedMinutes: task.estimatedMinutes || undefined,
-      actualMinutes: task.actualMinutes || undefined,
       categoryId: task.categoryId || undefined,
       parentId: task.parentId || undefined,
     }));
@@ -200,11 +205,10 @@ export default function ProjectManagement() {
         ...newTaskData,
         description: newTaskData.description || undefined,
         dueDate: newTaskData.dueDate || undefined,
-        completedAt: newTaskData.completedAt || undefined,
-        estimatedMinutes: newTaskData.estimatedMinutes || undefined,
-        actualMinutes: newTaskData.actualMinutes || undefined,
         categoryId: newTaskData.categoryId || undefined,
         parentId: newTaskData.parentId || undefined,
+        projectId: newTaskData.projectId || undefined,
+        dayId: newTaskData.dayId || undefined,
       });
     },
     [createTaskAsync],
@@ -216,11 +220,10 @@ export default function ProjectManagement() {
         ...updatedTask,
         description: updatedTask.description || undefined,
         dueDate: updatedTask.dueDate || undefined,
-        completedAt: updatedTask.completedAt || undefined,
-        estimatedMinutes: updatedTask.estimatedMinutes || undefined,
-        actualMinutes: updatedTask.actualMinutes || undefined,
         categoryId: updatedTask.categoryId || undefined,
         parentId: updatedTask.parentId || undefined,
+        projectId: updatedTask.projectId || undefined,
+        dayId: updatedTask.dayId || undefined,
       });
     },
     [updateTaskAsync],

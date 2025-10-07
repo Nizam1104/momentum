@@ -34,7 +34,6 @@ const toTask = (task: any): Task => {
     createdAt: new Date(task.createdAt),
     updatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined,
     dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-    completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
   };
 };
 
@@ -325,7 +324,7 @@ export async function getDayTasks(
 
 export async function createDayTask(
   dayId: string,
-  taskData: Omit<Task, "id" | "createdAt" | "updatedAt" | "dayId">,
+  taskData: Omit<Task, "id" | "createdAt" | "updatedAt" | "dayId" | "userId">,
 ): Promise<ActionResult<Task>> {
   try {
     const supabase = await getSupabaseClient();
@@ -356,28 +355,16 @@ export async function createDayTask(
 
 export async function updateDayTask(
   taskId: string,
-  updates: Partial<Omit<Task, "id" | "createdAt" | "updatedAt">>,
+  updates: Partial<Omit<Task, "id" | "createdAt" | "updatedAt" | "userId">>,
 ): Promise<ActionResult<Task>> {
   try {
     const supabase = await getSupabaseClient();
-    const updateData: any = {
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (updates.status === TaskStatus.COMPLETED) {
-      updateData.completedAt = new Date().toISOString();
-    } else if (
-      updates.status === TaskStatus.TODO ||
-      updates.status === TaskStatus.IN_PROGRESS ||
-      updates.status === TaskStatus.CANCELLED
-    ) {
-      updateData.completedAt = null;
-    }
-
     const { data, error } = await supabase
       .from("Task")
-      .update(updateData)
+      .update({
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      })
       .eq("id", taskId)
       .select()
       .single();

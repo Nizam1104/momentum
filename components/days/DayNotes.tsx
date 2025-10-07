@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from "react"; // Import useEffect
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,15 +41,15 @@ export default function DayNotes() {
   
   // Set initial active note when notes are loaded
   // This useMemo runs when notes or activeNoteId changes
-  // useMemo(() => {
-  //   if (notes.length > 0 && !activeNoteId) {
-  //     const learningsNote = notes.find(
-  //       (note) => note.title === "Learnings" && note.type === NoteType.LEARNING,
-  //     );
-  //     const firstNote = learningsNote || notes[0];
-  //     setActiveNoteId(firstNote.id);
-  //   }
-  // }, [notes, activeNoteId]);
+  useMemo(() => {
+    if (notes.length > 0 && !activeNoteId) {
+      const learningsNote = notes.find(
+        (note) => note.title === "Learnings",
+      );
+      const firstNote = learningsNote || notes[0];
+      setActiveNoteId(firstNote.id);
+    }
+  }, [notes, activeNoteId]);
 
   // Derive the active note from the store's notes array
   const activeNote = useMemo(
@@ -75,17 +75,13 @@ export default function DayNotes() {
   const handleAddNote = async () => {
     if (!selectedDay) return;
 
-    // Create the note in the DB. Assuming createNoteAsync updates the store
-    // and the new note becomes available in the `notes` array.
-    await createNoteAsync(selectedDay.id, {
+    // Create the note in the DB and get the returned note
+    const newNote = await createNoteAsync(selectedDay.id, {
       title: "New Note",
       content: "",
     });
 
-    // After the store updates, the `useMemo` for `activeNote` and `useEffect` for `localActiveNote`
-    // will automatically pick up the new note if it becomes the first one or is explicitly set.
-    // The current logic relies on `notes[0]` being the new note.
-    const newNote = notes[0];
+    // Set the new note as active and enter edit mode
     if (newNote) {
       setActiveNoteId(newNote.id);
       setIsEditMode(true); // Enter edit mode for the new note
