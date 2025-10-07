@@ -89,20 +89,13 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   dueDate?: Date | null;
+  completedAt?: Date | null;
   userId: string;
   projectId?: string | null;
   categoryId?: string | null;
   parentId?: string | null;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface TaskCompletion {
-  id: string;
-  dayId: string;
-  taskId: string;
-  completedAt: Date;
-  notes?: string | null;
 }
 
 

@@ -4,7 +4,6 @@ ALTER TABLE "Day" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Note" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Project" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Task" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "TaskCompletion" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Category" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LearningTopic" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LearningConcept" ENABLE ROW LEVEL SECURITY;
@@ -170,68 +169,6 @@ FOR DELETE
 TO authenticated
 USING ("userId" = (auth.jwt() ->> 'sub'));
 
--- ============================================================================
--- TASK COMPLETION TABLE POLICIES
--- ============================================================================
-
-CREATE POLICY "Users can view own task completions"
-ON "TaskCompletion"
-AS PERMISSIVE
-FOR SELECT
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM "Day" 
-    WHERE "Day".id = "TaskCompletion"."dayId" 
-    AND "Day"."userId" = (auth.jwt() ->> 'sub')
-  )
-);
-
-CREATE POLICY "Users can insert own task completions"
-ON "TaskCompletion"
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM "Day" 
-    WHERE "Day".id = "TaskCompletion"."dayId" 
-    AND "Day"."userId" = (auth.jwt() ->> 'sub')
-  )
-);
-
-CREATE POLICY "Users can update own task completions"
-ON "TaskCompletion"
-AS PERMISSIVE
-FOR UPDATE
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM "Day" 
-    WHERE "Day".id = "TaskCompletion"."dayId" 
-    AND "Day"."userId" = (auth.jwt() ->> 'sub')
-  )
-)
-WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM "Day" 
-    WHERE "Day".id = "TaskCompletion"."dayId" 
-    AND "Day"."userId" = (auth.jwt() ->> 'sub')
-  )
-);
-
-CREATE POLICY "Users can delete own task completions"
-ON "TaskCompletion"
-AS PERMISSIVE
-FOR DELETE
-TO authenticated
-USING (
-  EXISTS (
-    SELECT 1 FROM "Day" 
-    WHERE "Day".id = "TaskCompletion"."dayId" 
-    AND "Day"."userId" = (auth.jwt() ->> 'sub')
-  )
-);
 
 -- ============================================================================
 -- CATEGORY TABLE POLICIES

@@ -56,7 +56,6 @@ model Day {
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes          Note[]
   tasks          Task[]
-  taskCompletions TaskCompletion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -157,6 +156,7 @@ model Task {
 
   // Timeline
   dueDate     DateTime?
+  completedAt DateTime?
 
   // Relationships
   userId      String
@@ -170,8 +170,6 @@ model Task {
   parentId    String?
   parent      Task?            @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subtasks    Task[]           @relation("TaskHierarchy")
-
-  completions TaskCompletion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -189,22 +187,6 @@ enum TaskStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
-}
-
-// Daily task completion tracking
-model TaskCompletion {
-  id     String @id @default(cuid())
-  dayId  String
-  day    Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  completedAt DateTime @default(now())
-  notes       String?  @db.Text
-
-  @@unique([dayId, taskId])
-  @@index([dayId])
-  @@index([taskId])
 }
 
 

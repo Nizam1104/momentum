@@ -103,10 +103,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       dueDate: values.dueDate || null,
       userId: "", // This should be provided from context/auth
       projectId: projectId, // Ensure projectId is always set
-      completedAt:
-        values.status === TaskStatus.COMPLETED && !initialData?.completedAt
-          ? new Date()
-          : initialData?.completedAt || null,
     };
 
     if (initialData) {

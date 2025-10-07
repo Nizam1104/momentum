@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Project as BaseProject, Task as BaseTask, TaskStatus as BaseTaskStatus, Priority as BasePriority } from "@/types/states";
-import { Task, TaskStatus, Priority } from "./enums";
 
 // Extended Project interface with progress
 interface Project extends BaseProject {
@@ -23,20 +22,6 @@ const mapToTaskInterface = (baseTask: BaseTask): UniversalTask => ({
 });
 
 
-const convertBaseTaskToTaskForm = (baseTask: BaseTask): Task => ({
-  id: baseTask.id,
-  title: baseTask.title,
-  description: baseTask.description || undefined,
-  status: baseTask.status as TaskStatus,
-  priority: baseTask.priority as Priority,
-  dueDate: baseTask.dueDate || undefined,
-  userId: baseTask.userId,
-  projectId: baseTask.projectId || undefined,
-  categoryId: baseTask.categoryId || undefined,
-  parentId: baseTask.parentId || undefined,
-  createdAt: baseTask.createdAt,
-  updatedAt: baseTask.updatedAt || new Date(),
-});
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,14 +40,7 @@ import {
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from "./utils";
 import { UniversalTaskList } from "@/components/tasks/UniversalTaskList";
 import { Task as UniversalTask, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TaskForm } from "./TaskForm";
 
 interface ProjectDetailsProps {
   project: Project;
@@ -83,49 +61,6 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onUpdateTask,
   onDeleteTask,
 }) => {
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<BaseTask | null>(null);
-
-  const handleTaskSubmit = (
-    taskData: Omit<Task, "createdAt" | "updatedAt"> | Task,
-  ) => {
-    if ("id" in taskData) {
-      // It's an existing task - convert back to BaseTask interface
-      const taskWithId = taskData as Task;
-      const baseTaskData: BaseTask = {
-        id: taskWithId.id,
-        title: taskWithId.title,
-        description: taskWithId.description || null,
-        status: taskWithId.status as BaseTaskStatus,
-        priority: taskWithId.priority as BasePriority,
-        dueDate: taskWithId.dueDate || null,
-        userId: project.userId,
-        projectId: taskWithId.projectId || project.id,
-        categoryId: taskWithId.categoryId || null,
-        parentId: taskWithId.parentId || null,
-        createdAt: taskWithId.createdAt,
-        updatedAt: new Date(),
-      };
-      onUpdateTask(baseTaskData);
-    } else {
-      // It's a new task - convert to BaseTask interface
-      const taskWithoutId = taskData as Omit<Task, "createdAt" | "updatedAt">;
-      const newBaseTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt"> = {
-        title: taskWithoutId.title,
-        description: taskWithoutId.description || null,
-        status: taskWithoutId.status as BaseTaskStatus,
-        priority: taskWithoutId.priority as BasePriority,
-        dueDate: taskWithoutId.dueDate || null,
-        userId: project.userId,
-        projectId: project.id,
-        categoryId: taskWithoutId.categoryId || null,
-        parentId: taskWithoutId.parentId || null,
-      };
-      onAddTask(newBaseTask);
-    }
-    setIsTaskFormOpen(false);
-    setEditingTask(null);
-  };
 
   
   // Convert tasks to universal format
@@ -174,11 +109,12 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       ? BaseTaskStatus.TODO
       : BaseTaskStatus.COMPLETED;
 
-    onUpdateTask({
+    const updatedBaseTask: BaseTask = {
       ...existingTask,
       status: newStatus,
       updatedAt: new Date(),
-    });
+    };
+    onUpdateTask(updatedBaseTask);
   };
 
   return (
@@ -239,30 +175,13 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         showFilters={true}
         groupBy="status"
         sortBy="priority"
-        variant="compact"
+        variant="detailed"
         onCreateTask={handleCreateTask}
         onUpdateTask={handleUpdateTask}
         onDeleteTask={handleDeleteTask}
         onToggleTask={handleToggleTask}
         className="mb-6"
       />
-
-      <Dialog open={isTaskFormOpen} onOpenChange={setIsTaskFormOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
-          </DialogHeader>
-          <TaskForm
-            initialData={editingTask ? convertBaseTaskToTaskForm(editingTask) : null}
-            projectId={project.id}
-            onSubmit={handleTaskSubmit}
-            onCancel={() => {
-              setIsTaskFormOpen(false);
-              setEditingTask(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </ScrollArea>
   );
 };

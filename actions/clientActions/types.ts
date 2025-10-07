@@ -66,6 +66,7 @@ export interface Task extends BaseEntity {
   status: TaskStatus;
   priority: Priority;
   dueDate?: Date;
+  completedAt?: Date;
   userId: string;
   projectId?: string;
   dayId?: string;
@@ -101,12 +102,4 @@ export interface Category extends BaseEntity {
   color: string;
   icon?: string;
   userId: string;
-}
-
-
-export interface TaskCompletion extends BaseEntity {
-  dayId: string;
-  taskId: string;
-  completedAt: Date;
-  notes?: string;
 }
