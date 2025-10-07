@@ -28,8 +28,7 @@ export default function DayTasks() {
     dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
-    completedAt: task.completedAt,
-  }));
+      }));
 
   const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
     if (!selectedDay) return;

@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus,
-  Clock,
   Target,
   Calendar,
   BookOpen,
@@ -33,15 +32,12 @@ import {
   LearningConcept,
   LearningConceptStatus,
   Priority,
-  Note,
   LearningResource,
 } from "@/types/states";
 import {
   updateLearningConcept,
   deleteLearningConcept,
-  fetchConceptNotes,
 } from "@/actions/clientActions/learning";
-import ConceptNotesList from "./ConceptNotesList";
 import ConceptResourcesList from "./ConceptResourcesList";
 
 interface LearningTopicDetailProps {
@@ -205,22 +201,14 @@ const ConceptCard = ({
           </p>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {concept.timeSpent?.toFixed(1) || 0}h spent
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {concept.completedAt
-                ? formatDate(concept.completedAt)
-                : "In progress"}
-            </span>
-          </div>
+        {/* Status */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span>
+            {concept.completedAt
+              ? formatDate(concept.completedAt)
+              : "In progress"}
+          </span>
         </div>
 
         {/* Notes and Resources Summary */}
@@ -271,9 +259,7 @@ export default function LearningTopicDetail({
 
   const [selectedConcept, setSelectedConcept] =
     useState<LearningConcept | null>(null);
-  const [conceptNotes, setConceptNotes] = useState<Note[]>([]);
   const [selectedView, setSelectedView] = useState<"concepts" | "notes" | "resources">("concepts");
-  const [triggerNoteCreate, setTriggerNoteCreate] = useState(false);
   const [triggerResourceCreate, setTriggerResourceCreate] = useState(false);
 
   // Fetch concepts for this topic
@@ -327,18 +313,9 @@ export default function LearningTopicDetail({
     }
   };
 
-  const handleManageNotes = async (concept: LearningConcept) => {
+  const handleManageNotes = (concept: LearningConcept) => {
     setSelectedConcept(concept);
     setSelectedView("notes");
-
-    // Fetch the latest notes for this concept
-    try {
-      const notes = await fetchConceptNotes(concept.id);
-      setConceptNotes(notes);
-    } catch (error) {
-      console.error("Error fetching concept notes:", error);
-      setConceptNotes(concept.notes || []);
-    }
   };
 
   const handleManageResources = (concept: LearningConcept) => {
@@ -346,18 +323,7 @@ export default function LearningTopicDetail({
     setSelectedView("resources");
   };
 
-  const handleNotesUpdate = async (notes: Note[]) => {
-    if (!selectedConcept) return;
-
-    try {
-      // Update local state for both the concept notes and the store
-      setConceptNotes(notes);
-      updateConcept(selectedConcept.id, { notes });
-    } catch (error) {
-      console.error("Error updating concept notes:", error);
-    }
-  };
-
+  
   const handleResourcesUpdate = async (resources: LearningResource[]) => {
     if (!selectedConcept) return;
 
@@ -429,11 +395,7 @@ export default function LearningTopicDetail({
                   onManageNotes={() => handleManageNotes(concept)}
                   onManageResources={() => handleManageResources(concept)}
                   isSelected={selectedConcept?.id === concept.id}
-                  onClick={() => {
-                    setSelectedConcept(concept);
-                    setSelectedView("notes");
-                    handleManageNotes(concept);
-                  }}
+                  onClick={() => handleManageNotes(concept)}
                 />
               ))}
             </div>
@@ -479,16 +441,6 @@ export default function LearningTopicDetail({
                       </TabsTrigger>
                     </TabsList>
                     <div className="ml-4">
-                      {selectedView === "notes" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setTriggerNoteCreate(true)}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Note
-                        </Button>
-                      )}
                       {selectedView === "resources" && (
                         <Button
                           variant="outline"
@@ -503,13 +455,6 @@ export default function LearningTopicDetail({
                   </div>
 
                   <TabsContent value="notes" className="space-y-4">
-                    <ConceptNotesList
-                      concept={selectedConcept}
-                      notes={conceptNotes}
-                      onNotesUpdate={handleNotesUpdate}
-                      triggerCreate={triggerNoteCreate}
-                      onTriggeredCreate={() => setTriggerNoteCreate(false)}
-                    />
                   </TabsContent>
 
                   <TabsContent value="resources" className="space-y-4">

@@ -69,7 +69,6 @@ const formSchema = z.object({
   priority: z.nativeEnum(Priority),
   status: z.nativeEnum(LearningConceptStatus),
   understandingLevel: z.number().min(1).max(5),
-  timeSpent: z.number().min(0).optional(),
   resources: z.array(resourceSchema).optional(),
 });
 
@@ -110,7 +109,6 @@ export default function CreateConceptDialog({
       priority: Priority.MEDIUM,
       status: LearningConceptStatus.NOT_STARTED,
       understandingLevel: 1,
-      timeSpent: undefined,
       resources: [],
     },
   });
@@ -305,89 +303,53 @@ export default function CreateConceptDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Understanding Level */}
-              <FormField
-                control={form.control}
-                name="understandingLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Understanding Level</FormLabel>
-                    <Select
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      defaultValue={field.value.toString()}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select level">
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                className={
-                                  understandingLevels.find(
-                                    (l) => l.value === field.value,
-                                  )?.color
-                                }
-                              >
-                                {
-                                  understandingLevels.find(
-                                    (l) => l.value === field.value,
-                                  )?.label
-                                }
-                              </Badge>
-                            </div>
-                          </SelectValue>
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {understandingLevels.map((level) => (
-                          <SelectItem
-                            key={level.value}
-                            value={level.value.toString()}
-                          >
-                            <Badge className={level.color}>{level.label}</Badge>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Time Spent */}
-              <FormField
-                control={form.control}
-                name="timeSpent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time Spent (hours)</FormLabel>
+            {/* Understanding Level */}
+            <FormField
+              control={form.control}
+              name="understandingLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Understanding Level</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    defaultValue={field.value.toString()}
+                  >
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.25"
-                        placeholder="e.g., 2.5"
-                        {...field}
-                        // Fix: Ensure the value prop is always a string or number, never undefined.
-                        // If field.value is undefined, pass an empty string to the input.
-                        value={field.value === undefined ? "" : field.value}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          // Fix: Convert an empty string from the input back to undefined
-                          // for the form state, as timeSpent is likely optional.
-                          field.onChange(
-                            inputValue === ""
-                              ? undefined
-                              : parseFloat(inputValue),
-                          );
-                        }}
-                      />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select level">
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              className={
+                                understandingLevels.find(
+                                  (l) => l.value === field.value,
+                                )?.color
+                              }
+                            >
+                              {
+                                understandingLevels.find(
+                                  (l) => l.value === field.value,
+                                )?.label
+                              }
+                            </Badge>
+                          </div>
+                        </SelectValue>
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {understandingLevels.map((level) => (
+                        <SelectItem
+                          key={level.value}
+                          value={level.value.toString()}
+                        >
+                          <Badge className={level.color}>{level.label}</Badge>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Resources */}
             <div className="space-y-4">

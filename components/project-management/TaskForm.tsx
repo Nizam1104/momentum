@@ -48,7 +48,6 @@ const taskFormSchema = z.object({
   status: z.nativeEnum(TaskStatus, { message: "Invalid task status." }),
   priority: z.nativeEnum(Priority, { message: "Invalid priority." }),
   dueDate: z.date().optional().nullable(),
-  estimatedMinutes: z.number().int().min(0, { message: "Estimated minutes must be a positive number." }).optional().nullable(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -74,7 +73,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       status: initialData?.status || TaskStatus.TODO,
       priority: initialData?.priority || Priority.MEDIUM,
       dueDate: initialData?.dueDate || undefined,
-      estimatedMinutes: initialData?.estimatedMinutes || undefined,
     },
   });
 
@@ -86,7 +84,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         status: initialData.status,
         priority: initialData.priority,
         dueDate: initialData.dueDate || undefined,
-        estimatedMinutes: initialData.estimatedMinutes || undefined,
       });
     } else {
       form.reset({
@@ -95,7 +92,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         status: TaskStatus.TODO,
         priority: Priority.MEDIUM,
         dueDate: undefined,
-        estimatedMinutes: undefined,
       });
     }
   }, [initialData, form]);
@@ -105,13 +101,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       ...values,
       description: values.description || null,
       dueDate: values.dueDate || null,
-      estimatedMinutes: values.estimatedMinutes || null,
+      userId: "", // This should be provided from context/auth
       projectId: projectId, // Ensure projectId is always set
       completedAt:
         values.status === TaskStatus.COMPLETED && !initialData?.completedAt
           ? new Date()
           : initialData?.completedAt || null,
-      actualMinutes: initialData?.actualMinutes || null, // Keep existing actualMinutes for updates
     };
 
     if (initialData) {
@@ -262,32 +257,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="estimatedMinutes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Estimated Minutes</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 60"
-                    {...field}
-                    value={
-                      field.value === null || field.value === undefined
-                        ? ""
-                        : field.value
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? null : Number(value));
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

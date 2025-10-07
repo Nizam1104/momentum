@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Target, Clock, TrendingUp, CheckCircle, PlayCircle } from "lucide-react";
+import { BookOpen, Target, TrendingUp, CheckCircle, PlayCircle } from "lucide-react";
 
 interface LearningStatsData {
   totalTopics: number;
@@ -11,7 +11,6 @@ interface LearningStatsData {
   completedTopics: number;
   totalConcepts: number;
   completedConcepts: number;
-  totalHoursSpent: number;
   averageProgress: number;
 }
 
@@ -88,27 +87,7 @@ export default function LearningStats({ stats, loading = false }: LearningStatsP
         </CardContent>
       </Card>
 
-      {/* Time Spent */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Time Invested
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold mb-2">
-            {stats.totalHoursSpent.toFixed(1)}h
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {stats.totalTopics > 0
-              ? `~${(stats.totalHoursSpent / stats.totalTopics).toFixed(1)}h per topic`
-              : "No data yet"
-            }
-          </div>
-        </CardContent>
-      </Card>
-
+      
       {/* Average Progress */}
       <Card>
         <CardHeader className="pb-2">

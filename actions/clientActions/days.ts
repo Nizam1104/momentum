@@ -6,7 +6,6 @@ import {
   Day,
   Note,
   Task,
-  NoteType,
   TaskStatus,
 } from "./types";
 import { nanoid } from "nanoid";
@@ -54,8 +53,6 @@ export async function getTodayEntry(
       .eq("date", today.toISOString().split("T")[0])
       .single();
 
-    console.log('error', error)
-
     if (error) {
       if (error.code === "PGRST116") {
         // No rows found - create a new day entry with default learnings note
@@ -80,6 +77,8 @@ export async function createTodayEntry(
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dateStr = today.toISOString().split("T")[0];
+
+    console.log(userId)
 
     // Create the day entry
     const { data: dayData, error: dayError } = await supabase
@@ -120,7 +119,6 @@ export async function createDefaultLearningsNote(
         id: nanoid(),
         title: "Learnings",
         content: "What did I learn today?\n\n",
-        type: NoteType.LEARNING,
         isPinned: true,
         isArchived: false,
         dayId,

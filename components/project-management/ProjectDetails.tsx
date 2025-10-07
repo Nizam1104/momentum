@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Project, Task as ProjectTask, TaskStatus as ProjectTaskStatus, Priority as ProjectPriority } from "./enums";
+import { Project, Task, TaskStatus, Priority } from "@/types/states";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Edit,
   Trash2,
@@ -20,7 +19,7 @@ import {
 } from "lucide-react";
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from "./utils";
 import { UniversalTaskList } from "@/components/tasks/UniversalTaskList";
-import { Task, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
+import { Task as UniversalTask, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
 import {
   Dialog,
   DialogContent,
@@ -32,11 +31,11 @@ import { TaskForm } from "./TaskForm";
 
 interface ProjectDetailsProps {
   project: Project;
-  tasks: ProjectTask[];
+  tasks: Task[];
   onEditProject: (project: Project) => void;
   onDeleteProject: (projectId: string) => void;
-  onAddTask: (newTask: Omit<ProjectTask, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateTask: (updatedTask: ProjectTask) => void;
+  onAddTask: (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
+  onUpdateTask: (updatedTask: Task) => void;
   onDeleteTask: (taskId: string, projectId: string) => void;
 }
 
@@ -50,15 +49,15 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onDeleteTask,
 }) => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
 
   const handleTaskSubmit = (
-    taskData: Omit<ProjectTask, "id" | "createdAt" | "updatedAt"> | ProjectTask,
+    taskData: Omit<Task, "id" | "createdAt" | "updatedAt"> | Task,
   ) => {
     if ("id" in taskData) {
       // It's an existing task
-      onUpdateTask(taskData as ProjectTask);
+      onUpdateTask(taskData as Task);
     } else {
       // It's a new task
       onAddTask({ ...taskData, projectId: project.id });
@@ -68,7 +67,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   };
 
   // Convert tasks to universal format
-  const universalTasks: Task[] = tasks.map(task => ({
+  const universalTasks: UniversalTask[] = tasks.map(task => ({
     id: task.id,
     title: task.title,
     description: task.description || undefined,
@@ -76,21 +75,20 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     priority: task.priority as UniversalPriority,
     dueDate: task.dueDate || undefined,
     createdAt: task.createdAt,
-    updatedAt: task.updatedAt,
-    projectId: task.projectId,
-    completedAt: task.completedAt || undefined,
+    updatedAt: task.updatedAt || undefined,
+    projectId: task.projectId || undefined,
   }));
 
   const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
     onAddTask({
       title: newTask.title,
       description: newTask.description,
-      priority: newTask.priority as ProjectPriority,
-      status: newTask.status as ProjectTaskStatus,
+      priority: newTask.priority as Priority,
+      status: newTask.status as TaskStatus,
       dueDate: newTask.dueDate,
       projectId: project.id,
-      completedAt: newTask.completedAt,
-    });
+      userId: project.userId,
+          });
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
@@ -101,11 +99,10 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
       ...existingTask,
       title: updates.title || existingTask.title,
       description: updates.description || existingTask.description,
-      priority: updates.priority as ProjectPriority || existingTask.priority,
-      status: updates.status as ProjectTaskStatus || existingTask.status,
+      priority: updates.priority as Priority || existingTask.priority,
+      status: updates.status as TaskStatus || existingTask.status,
       dueDate: updates.dueDate || existingTask.dueDate,
-      completedAt: updates.completedAt || existingTask.completedAt,
-    });
+          });
   };
 
   const handleDeleteTask = async (taskId: string) => {
@@ -117,14 +114,13 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
     if (!existingTask) return;
 
     const newStatus = currentStatus === UniversalTaskStatus.COMPLETED
-      ? ProjectTaskStatus.TODO
-      : ProjectTaskStatus.COMPLETED;
+      ? TaskStatus.TODO
+      : TaskStatus.COMPLETED;
 
     onUpdateTask({
       ...existingTask,
       status: newStatus,
-      completedAt: newStatus === ProjectTaskStatus.COMPLETED ? new Date() : null,
-    });
+          });
   };
 
   return (
@@ -174,14 +170,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
               <span>{formatDate(project.dueDate)}</span>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Progress</span>
-              <span className="font-semibold">{project.progress}%</span>
-            </div>
-            <Progress value={project.progress} className="h-2" />
-          </div>
-        </CardContent>
+          </CardContent>
       </Card>
 
       <UniversalTaskList

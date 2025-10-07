@@ -19,11 +19,6 @@ export interface Day {
   lessons?: string | null;
   gratitude?: string | null;
   tomorrowFocus?: string | null;
-  energyLevel?: number | null;
-  moodRating?: number | null;
-  productivityRating?: number | null;
-  sleepHours?: number | null;
-  sleepQuality?: number | null;
   isCompleted: boolean;
   createdAt: Date;
   updatedAt?: Date | null;
@@ -33,7 +28,6 @@ export interface Note {
   id: string;
   title?: string | null;
   content: string;
-  type: NoteType;
   isPinned: boolean;
   isArchived: boolean;
   userId?: string | null;
@@ -71,7 +65,6 @@ export interface Project {
   startDate?: Date | null;
   dueDate?: Date | null;
   completedAt?: Date | null;
-  progress: number;
   userId: string;
   categoryId?: string | null;
   parentId?: string | null;
@@ -93,10 +86,9 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   dueDate?: Date | null;
-  completedAt?: Date | null;
-  estimatedMinutes?: number | null;
-  actualMinutes?: number | null;
-  projectId: string;
+  userId: string;
+  projectId?: string | null;
+  dayId?: string | null;
   categoryId?: string | null;
   parentId?: string | null;
   createdAt: Date;
@@ -111,74 +103,7 @@ export interface TaskCompletion {
   notes?: string | null;
 }
 
-export enum GoalType {
-  PERSONAL = "PERSONAL",
-  PROFESSIONAL = "PROFESSIONAL",
-  HEALTH = "HEALTH",
-  FINANCIAL = "FINANCIAL",
-  LEARNING = "LEARNING",
-  RELATIONSHIP = "RELATIONSHIP",
-  CREATIVE = "CREATIVE",
-}
 
-export enum GoalStatus {
-  ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum DailyGoalStatus {
-  NOT_STARTED = "NOT_STARTED",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  SKIPPED = "SKIPPED",
-}
-
-export interface Goal {
-  id: string;
-  title: string;
-  description?: string | null;
-  type: GoalType;
-  status: GoalStatus;
-  priority: Priority;
-  color: string;
-  startDate?: Date | null;
-  targetDate?: Date | null;
-  completedAt?: Date | null;
-  isQuantifiable: boolean;
-  targetValue?: number | null;
-  currentValue?: number | null;
-  unit?: string | null;
-  userId: string;
-  projectId?: string | null;
-  categoryId?: string | null;
-  parentId?: string | null;
-  createdAt: Date;
-  updatedAt?: Date | null;
-}
-
-export interface DailyGoal {
-  id: string;
-  dayId: string;
-  goalId: string;
-  status: DailyGoalStatus;
-  progress: number;
-  notes?: string | null;
-  createdAt: Date;
-  updatedAt?: Date | null;
-}
-
-// src/stores/common/enums.ts
-
-export enum NoteType {
-  GENERAL = "GENERAL",
-  MEETING = "MEETING",
-  IDEA = "IDEA",
-  LEARNING = "LEARNING",
-  REFLECTION = "REFLECTION",
-  PLANNING = "PLANNING",
-}
 
 export interface Category {
   id: string;
@@ -191,14 +116,6 @@ export interface Category {
   updatedAt?: Date | null;
 }
 
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt?: Date | null;
-}
 
 // Learning Management System Types
 export enum LearningTopicStatus {
@@ -230,9 +147,6 @@ export interface LearningTopic {
   color: string;
   priority: Priority;
   status: LearningTopicStatus;
-  estimatedHours?: number | null;
-  actualHours?: number | null;
-  progress: number; // 0-100
   startDate?: Date | null;
   targetDate?: Date | null;
   completedAt?: Date | null;
@@ -253,7 +167,6 @@ export interface LearningConcept {
   status: LearningConceptStatus;
   priority: Priority;
   understandingLevel: number; // 1-5 scale
-  timeSpent?: number | null; // in hours
   startDate?: Date | null;
   completedAt?: Date | null;
   userId: string;

@@ -19,11 +19,6 @@ export interface Day {
   id: string;
   date: Date; // @db.Date
   userId: string;
-  energyLevel?: number | null;
-  moodRating?: number | null;
-  productivityRating?: number | null;
-  sleepHours?: number | null;
-  sleepQuality?: number | null;
   highlights?: string | null;
   challenges?: string | null;
   lessons?: string | null;
@@ -38,7 +33,6 @@ export interface Note {
   id: string;
   title?: string | null;
   content: string;
-  type: NoteType;
   isPinned: boolean;
   isArchived: boolean;
   dayId?: string | null;
@@ -95,10 +89,8 @@ export interface Task {
   status: TaskStatus;
   priority: Priority;
   dueDate?: Date | null;
-  completedAt?: Date | null;
-  estimatedMinutes?: number | null;
-  actualMinutes?: number | null;
-  projectId: string;
+  userId: string;
+  projectId?: string | null;
   categoryId?: string | null;
   parentId?: string | null;
   createdAt: Date;
@@ -113,72 +105,6 @@ export interface TaskCompletion {
   notes?: string | null;
 }
 
-export enum GoalType {
-  PERSONAL = "PERSONAL",
-  PROFESSIONAL = "PROFESSIONAL",
-  HEALTH = "HEALTH",
-  FINANCIAL = "FINANCIAL",
-  LEARNING = "LEARNING",
-  RELATIONSHIP = "RELATIONSHIP",
-  CREATIVE = "CREATIVE",
-}
-
-export enum GoalStatus {
-  ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum DailyGoalStatus {
-  NOT_STARTED = "NOT_STARTED",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  SKIPPED = "SKIPPED",
-}
-
-export interface Goal {
-  id: string;
-  title: string;
-  description?: string | null;
-  type: GoalType;
-  status: GoalStatus;
-  priority: Priority;
-  color: string;
-  startDate?: Date | null;
-  targetDate?: Date | null;
-  completedAt?: Date | null;
-  isQuantifiable: boolean;
-  targetValue?: number | null;
-  currentValue: number;
-  unit?: string | null;
-  userId: string;
-  projectId?: string | null;
-  categoryId?: string | null;
-  parentId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface DailyGoal {
-  id: string;
-  dayId: string;
-  goalId: string;
-  status: DailyGoalStatus;
-  progress: number;
-  notes?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export enum NoteType {
-  GENERAL = "GENERAL",
-  MEETING = "MEETING",
-  IDEA = "IDEA",
-  LEARNING = "LEARNING",
-  REFLECTION = "REFLECTION",
-  PLANNING = "PLANNING",
-}
 
 export interface Category {
   id: string;
@@ -191,14 +117,6 @@ export interface Category {
   updatedAt: Date;
 }
 
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface Achievement {
   id: string;

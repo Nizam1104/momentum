@@ -1,7 +1,7 @@
 // actions/clientActions/notes.ts
 "use client";
 import { getSupabaseClient } from '@/lib/supabase';
-import { ActionResult, Note, NoteType } from './types';
+import { ActionResult, Note } from './types';
 import { nanoid } from 'nanoid';
 
 const toNote = (note: any): Note => {
@@ -288,32 +288,6 @@ export async function getArchivedNotes(userId: string): Promise<ActionResult<Not
   }
 }
 
-export async function getNotesByType(userId: string, type: NoteType): Promise<ActionResult<Note[]>> {
-  try {
-    const supabase = await getSupabaseClient();
-    const { data, error } = await supabase
-      .from('Note')
-      .select(`
-        *,
-        day:Day(userId)
-      `)
-      .or(`dayId.is.null,day.userId.eq.${userId}`)
-      .eq('type', type)
-      .eq('isArchived', false)
-      .order('isPinned', { ascending: false })
-      .order('createdAt', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching notes by type:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, data: data ? data.map(toNote) : [] };
-  } catch (error) {
-    console.error('Error in getNotesByType:', error);
-    return { success: false, error: 'Failed to fetch notes by type' };
-  }
-}
 
 export async function getPinnedNotes(userId: string): Promise<ActionResult<Note[]>> {
   try {

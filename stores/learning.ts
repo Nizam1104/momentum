@@ -295,12 +295,6 @@ export const useLearningStore = create<LearningState>()(
           (completedConcepts.length / topicConcepts.length) * 100,
         );
 
-        // Calculate total time spent
-        const actualHours = topicConcepts.reduce(
-          (total, concept) => total + (concept.timeSpent || 0),
-          0,
-        );
-
         // Update status based on progress
         let status = topic.status;
         if (progress === 100 && status !== LearningTopicStatus.COMPLETED) {
@@ -310,8 +304,6 @@ export const useLearningStore = create<LearningState>()(
         }
 
         updateTopic(topicId, {
-          progress,
-          actualHours,
           status,
           completedAt: progress === 100 ? new Date() : topic.completedAt,
         });

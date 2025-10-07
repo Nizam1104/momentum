@@ -2,7 +2,6 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useDayStore } from "@/stores/day"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CheckCircle2, Circle } from "lucide-react"
 
@@ -79,19 +78,7 @@ export default function DaysChain() {
                   })}
                 </span>
               </div>
-              <div className="flex gap-1">
-                {day.energyLevel && (
-                  <Badge variant="outline" className="text-xs">
-                    E: {day.energyLevel}
-                  </Badge>
-                )}
-                {day.moodRating && (
-                  <Badge variant="outline" className="text-xs">
-                    M: {day.moodRating}
-                  </Badge>
-                )}
-              </div>
-            </div>
+                          </div>
           );
         })}
       </div>

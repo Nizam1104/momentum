@@ -74,7 +74,6 @@ interface ProjectFormProps {
           Project,
           | "id"
           | "userId"
-          | "progress"
           | "createdAt"
           | "updatedAt"
           | "completedAt"

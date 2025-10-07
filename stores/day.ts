@@ -4,7 +4,6 @@ import {
   Day,
   Note,
   Task,
-  NoteType,
   TaskStatus,
   Priority,
   getTodayEntry,
@@ -68,7 +67,7 @@ interface DayState {
   fetchDayNotes: (dayId: string) => Promise<void>;
   createNoteAsync: (
     dayId: string,
-    noteData: { title?: string; content: string; type?: NoteType },
+    noteData: { title?: string; content: string },
   ) => Promise<void>;
   updateNoteAsync: (
     noteId: string,
@@ -240,7 +239,6 @@ export const useDayStore = create<DayState>((set, get) => ({
       const result = await createDayNote(dayId, {
         title: noteData.title || "",
         content: noteData.content,
-        type: noteData.type || NoteType.GENERAL,
         isPinned: false,
         isArchived: false,
       });

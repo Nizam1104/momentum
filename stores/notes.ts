@@ -1,6 +1,6 @@
 // src/stores/useNoteStore.ts
 import { create } from "zustand";
-import { Note, NoteType } from "@/types/states";
+import { Note } from "@/types/states";
 
 // State Interface
 interface NoteState {
@@ -21,7 +21,6 @@ interface NoteState {
   getNotesByDayId: (dayId: string) => Note[];
   getNotesByProjectId: (projectId: string) => Note[];
   getNotesByCategoryId: (categoryId: string) => Note[];
-  getNotesByType: (type: NoteType) => Note[];
   getPinnedNotes: () => Note[];
   getArchivedNotes: () => Note[];
   isItemUpdating: (id: string) => boolean;
@@ -64,7 +63,6 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     get().notes.filter((note) => note.projectId === projectId),
   getNotesByCategoryId: (categoryId) =>
     get().notes.filter((note) => note.categoryId === categoryId),
-  getNotesByType: (type) => get().notes.filter((note) => note.type === type),
   getPinnedNotes: () =>
     get().notes.filter((note) => note.isPinned && !note.isArchived),
   getArchivedNotes: () => get().notes.filter((note) => note.isArchived),

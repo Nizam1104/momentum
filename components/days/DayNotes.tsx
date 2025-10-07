@@ -21,7 +21,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useDayStore } from "@/stores/day";
-import { Note, NoteType } from "@/types/states";
+import { Note } from "@/types/states";
 
 export default function DayNotes() {
   const {
@@ -41,15 +41,15 @@ export default function DayNotes() {
   
   // Set initial active note when notes are loaded
   // This useMemo runs when notes or activeNoteId changes
-  useMemo(() => {
-    if (notes.length > 0 && !activeNoteId) {
-      const learningsNote = notes.find(
-        (note) => note.title === "Learnings" && note.type === NoteType.LEARNING,
-      );
-      const firstNote = learningsNote || notes[0];
-      setActiveNoteId(firstNote.id);
-    }
-  }, [notes, activeNoteId]);
+  // useMemo(() => {
+  //   if (notes.length > 0 && !activeNoteId) {
+  //     const learningsNote = notes.find(
+  //       (note) => note.title === "Learnings" && note.type === NoteType.LEARNING,
+  //     );
+  //     const firstNote = learningsNote || notes[0];
+  //     setActiveNoteId(firstNote.id);
+  //   }
+  // }, [notes, activeNoteId]);
 
   // Derive the active note from the store's notes array
   const activeNote = useMemo(
@@ -80,7 +80,6 @@ export default function DayNotes() {
     await createNoteAsync(selectedDay.id, {
       title: "New Note",
       content: "",
-      type: NoteType.GENERAL,
     });
 
     // After the store updates, the `useMemo` for `activeNote` and `useEffect` for `localActiveNote`
@@ -125,8 +124,7 @@ export default function DayNotes() {
 
     // Don't allow deletion of the default Learnings note
     if (
-      activeNote.title === "Learnings" &&
-      activeNote.type === NoteType.LEARNING
+      activeNote.title === "Learnings"
     ) {
       return;
     }
@@ -205,9 +203,9 @@ export default function DayNotes() {
             onClick={() => handleSelectNote(note.id)}
             className="h-8 gap-2"
           >
-            {note.title === "Learnings" && note.type === NoteType.LEARNING && (
+            {/* {note.title === "Learnings" && note.type === NoteType.LEARNING && (
               <BookOpen className="h-3 w-3" />
-            )}
+            )} */}
             {note.title || "Untitled"}
           </Button>
         ))}
@@ -241,9 +239,8 @@ export default function DayNotes() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {displayNote.title === "Learnings" && // Use displayNote for read-only title
-                      displayNote.type === NoteType.LEARNING && (
                         <BookOpen className="h-5 w-5 text-blue-500" />
-                      )}
+                      }
                     {displayNote.title || "Untitled Note"}
                   </CardTitle>
                   <CardDescription>
@@ -271,8 +268,7 @@ export default function DayNotes() {
                 )}
                 {/* Don't show delete button for the default Learnings note */}
                 {!(
-                  displayNote.title === "Learnings" && // Use displayNote for check
-                  displayNote.type === NoteType.LEARNING
+                  displayNote.title === "Learnings"
                 ) && (
                     <Button
                       variant="destructive"

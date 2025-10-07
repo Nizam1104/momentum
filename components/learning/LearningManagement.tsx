@@ -28,7 +28,6 @@ interface LearningStatsData {
   completedTopics: number;
   totalConcepts: number;
   completedConcepts: number;
-  totalHoursSpent: number;
   averageProgress: number;
 }
 
