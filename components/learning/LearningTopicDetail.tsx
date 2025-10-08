@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +17,10 @@ import {
   MoreVertical,
   StickyNote,
   Link,
+  Pencil,
+  Save,
+  Trash2,
+  PlusCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useLearningStore } from "@/stores/learning";
 import {
@@ -33,12 +38,17 @@ import {
   LearningConceptStatus,
   Priority,
   LearningResource,
+  Note,
 } from "@/types/states";
 import {
   updateLearningConcept,
   deleteLearningConcept,
+  createConceptNote,
+  updateConceptNote,
+  deleteConceptNote,
 } from "@/actions/clientActions/learning";
 import ConceptResourcesList from "./ConceptResourcesList";
+import MarkdownEditor from "@/components/notes/MarkdownEditor";
 
 interface LearningTopicDetailProps {
   topic: LearningTopic;
@@ -262,6 +272,11 @@ export default function LearningTopicDetail({
   const [selectedView, setSelectedView] = useState<"concepts" | "notes" | "resources">("concepts");
   const [triggerResourceCreate, setTriggerResourceCreate] = useState(false);
 
+  // Notes state
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [localActiveNote, setLocalActiveNote] = useState<Note | null>(null);
+
   // Fetch concepts for this topic
   useEffect(() => {
     if (topic.id) {
@@ -316,6 +331,16 @@ export default function LearningTopicDetail({
   const handleManageNotes = (concept: LearningConcept) => {
     setSelectedConcept(concept);
     setSelectedView("notes");
+
+    // Set up notes state for this concept
+    if (concept.notes && concept.notes.length > 0) {
+      setActiveNoteId(concept.notes[0].id);
+      setLocalActiveNote({ ...concept.notes[0] });
+    } else {
+      setActiveNoteId(null);
+      setLocalActiveNote(null);
+    }
+    setIsEditMode(false);
   };
 
   const handleManageResources = (concept: LearningConcept) => {
@@ -332,6 +357,106 @@ export default function LearningTopicDetail({
       updateConcept(selectedConcept.id, { resources });
     } catch (error) {
       console.error("Error updating concept resources:", error);
+    }
+  };
+
+  // Note management functions
+  const handleAddNote = async () => {
+    if (!selectedConcept) return;
+
+    // Create the note in the DB and get the returned note
+    const newNote = await createConceptNote(selectedConcept.userId, selectedConcept.id, {
+      title: "New Note",
+      content: "",
+    });
+
+    // Update the concept in the store with the new note
+    const updatedConcept = {
+      ...selectedConcept,
+      notes: [...(selectedConcept.notes || []), newNote],
+    };
+    updateConcept(selectedConcept.id, updatedConcept);
+
+    // Set the new note as active and enter edit mode
+    setActiveNoteId(newNote.id);
+    setLocalActiveNote({ ...newNote });
+    setIsEditMode(true);
+  };
+
+  const handleSelectNote = (noteId: string) => {
+    if (!selectedConcept) return;
+
+    setActiveNoteId(noteId);
+    const note = selectedConcept.notes?.find((n) => n.id === noteId);
+    if (note) {
+      setLocalActiveNote({ ...note });
+    }
+    setIsEditMode(false);
+  };
+
+  const handleSaveNote = async () => {
+    if (!localActiveNote || !activeNoteId || !selectedConcept) return;
+
+    try {
+      // Update the individual note in the database
+      const updatedNote = await updateConceptNote(activeNoteId, {
+        title: localActiveNote.title || "",
+        content: localActiveNote.content,
+      });
+
+      // Update the note in the local notes array
+      const updatedNotes = selectedConcept.notes?.map((note) =>
+        note.id === activeNoteId ? updatedNote : note
+      );
+
+      // Update the concept in the store
+      const updatedConcept = { ...selectedConcept, notes: updatedNotes };
+      updateConcept(selectedConcept.id, updatedConcept);
+
+      // Update local active note
+      setLocalActiveNote({ ...updatedNote });
+
+    } catch (error) {
+      console.error("Error saving note:", error);
+    }
+
+    setIsEditMode(false);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!activeNoteId || !selectedConcept) return;
+
+    try {
+      // Delete the individual note from the database
+      await deleteConceptNote(activeNoteId);
+
+      // Remove the note from the local notes array
+      const updatedNotes = selectedConcept.notes?.filter((n) => n.id !== activeNoteId);
+
+      // Update the concept in the store
+      const updatedConcept = { ...selectedConcept, notes: updatedNotes };
+      updateConcept(selectedConcept.id, updatedConcept);
+
+      // Select another note or clear selection
+      if (updatedNotes && updatedNotes.length > 0) {
+        setActiveNoteId(updatedNotes[0].id);
+        setLocalActiveNote({ ...updatedNotes[0] });
+      } else {
+        setActiveNoteId(null);
+        setLocalActiveNote(null);
+      }
+      setIsEditMode(false);
+    } catch (error) {
+      console.error("Error deleting note:", error);
+    }
+  };
+
+  const updateLocalActiveNote = (field: "title" | "content", value: string) => {
+    if (localActiveNote) {
+      setLocalActiveNote((prev: Note | null) => {
+        if (!prev) return null;
+        return { ...prev, [field]: value };
+      });
     }
   };
 
@@ -441,6 +566,16 @@ export default function LearningTopicDetail({
                       </TabsTrigger>
                     </TabsList>
                     <div className="ml-4">
+                      {selectedView === "notes" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAddNote}
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          New Note
+                        </Button>
+                      )}
                       {selectedView === "resources" && (
                         <Button
                           variant="outline"
@@ -455,6 +590,129 @@ export default function LearningTopicDetail({
                   </div>
 
                   <TabsContent value="notes" className="space-y-4">
+                    {selectedConcept && (
+                      <>
+                        {/* Note Navigation Tabs */}
+                        <div className="flex items-center gap-2 pb-2">
+                          {selectedConcept.notes?.map((note) => (
+                            <Button
+                              key={note.id}
+                              variant={note.id === activeNoteId ? "default" : "ghost"}
+                              size="sm"
+                              onClick={() => handleSelectNote(note.id)}
+                              className="h-8 gap-2"
+                            >
+                              <StickyNote className="h-3 w-3" />
+                              {note.title || "Untitled"}
+                            </Button>
+                          ))}
+                          {selectedConcept.notes && selectedConcept.notes.length === 0 && (
+                            <span className="text-sm text-muted-foreground">No notes yet</span>
+                          )}
+                        </div>
+
+                        {/* Note Content */}
+                        {localActiveNote ? (
+                          <Card>
+                            <CardHeader>
+                              <div className="flex justify-between items-center gap-4">
+                                {isEditMode ? (
+                                  <Input
+                                    value={localActiveNote?.title || ""}
+                                    onChange={(e) =>
+                                      updateLocalActiveNote("title", e.target.value)
+                                    }
+                                    placeholder="Note title"
+                                    className="text-2xl font-bold p-2 h-auto border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                  />
+                                ) : (
+                                  <div>
+                                    <CardTitle className="flex items-center gap-2">
+                                      <StickyNote className="h-5 w-5 text-blue-500" />
+                                      {localActiveNote.title || "Untitled Note"}
+                                    </CardTitle>
+                                    <CardDescription>
+                                      Last updated:{" "}
+                                      {localActiveNote.updatedAt?.toLocaleString() ||
+                                        localActiveNote.createdAt.toLocaleString()}
+                                    </CardDescription>
+                                  </div>
+                                )}
+                                <div className="flex gap-2 flex-shrink-0">
+                                  {isEditMode ? (
+                                    <Button variant="default" size="sm" onClick={handleSaveNote}>
+                                      <Save className="h-4 w-4 mr-2" />
+                                      Save
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setIsEditMode(true)}
+                                    >
+                                      <Pencil className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={handleDeleteNote}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div
+                                className="prose dark:prose-invert max-w-none"
+                                onDoubleClick={() => {
+                                  if (!isEditMode) {
+                                    setIsEditMode(true);
+                                  }
+                                }}
+                                onKeyUp={(e) => {
+                                  if (e.key === "Enter" && e.ctrlKey) {
+                                    handleSaveNote();
+                                  }
+                                }}
+                              >
+                                <MarkdownEditor
+                                  key={localActiveNote.id}
+                                  value={localActiveNote.content}
+                                  onChange={(value) =>
+                                    updateLocalActiveNote("content", value || "")
+                                  }
+                                  height={400}
+                                  preview={isEditMode ? "live" : "preview"}
+                                  hideToolbar={!isEditMode}
+                                  editable={isEditMode}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && e.ctrlKey) {
+                                      handleSaveNote();
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ) : (
+                          <Card>
+                            <CardContent className="pt-6">
+                              <div className="text-center py-8">
+                                <StickyNote className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold mb-2">No Notes Yet</h3>
+                                <p className="text-muted-foreground mb-4">
+                                  Click the &quot;New Note&quot; button to create your first note for this concept.
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="resources" className="space-y-4">
