@@ -331,7 +331,7 @@ export default function ProjectManagement() {
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 px-4 py-2  overflow-auto">
         {currentSelectedProject ? (
           <ProjectDetails
             project={currentSelectedProject}

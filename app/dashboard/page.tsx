@@ -95,7 +95,7 @@ export default function DashboardPage() {
   const hasError = dayError || projectError || topicsError;
 
   return (
-    <div className="container mx-auto p-2 space-y-3">
+    <div className="container mx-auto px-2 space-y-3">
 
       {hasError && (
         <Alert variant="destructive">

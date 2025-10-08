@@ -26,13 +26,13 @@ export default function DashboardTabs() {
       </TabsContent>
 
       <TabsContent value="projects" className="space-y-4">
-        <div className="h-[calc(100vh-200px)]">
+        <div className="h-[calc(100vh-100px)]">
           <ProjectManagement />
         </div>
       </TabsContent>
 
       <TabsContent value="learning" className="space-y-4">
-        <div className="h-[calc(100vh-200px)]">
+        <div className="h-[calc(100vh-100px)]">
           <LearningManagement />
         </div>
       </TabsContent>
