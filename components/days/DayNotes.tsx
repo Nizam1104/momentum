@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from "react"; // Import useEffect
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +21,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useDayStore } from "@/stores/day";
-import { Note, NoteType } from "@/types/states";
+import { Note } from "@/types/states";
 
 export default function DayNotes() {
   const {
@@ -44,7 +44,7 @@ export default function DayNotes() {
   useMemo(() => {
     if (notes.length > 0 && !activeNoteId) {
       const learningsNote = notes.find(
-        (note) => note.title === "Learnings" && note.type === NoteType.LEARNING,
+        (note) => note.title === "Learnings",
       );
       const firstNote = learningsNote || notes[0];
       setActiveNoteId(firstNote.id);
@@ -75,18 +75,13 @@ export default function DayNotes() {
   const handleAddNote = async () => {
     if (!selectedDay) return;
 
-    // Create the note in the DB. Assuming createNoteAsync updates the store
-    // and the new note becomes available in the `notes` array.
-    await createNoteAsync(selectedDay.id, {
+    // Create the note in the DB and get the returned note
+    const newNote = await createNoteAsync(selectedDay.id, {
       title: "New Note",
       content: "",
-      type: NoteType.GENERAL,
     });
 
-    // After the store updates, the `useMemo` for `activeNote` and `useEffect` for `localActiveNote`
-    // will automatically pick up the new note if it becomes the first one or is explicitly set.
-    // The current logic relies on `notes[0]` being the new note.
-    const newNote = notes[0];
+    // Set the new note as active and enter edit mode
     if (newNote) {
       setActiveNoteId(newNote.id);
       setIsEditMode(true); // Enter edit mode for the new note
@@ -125,8 +120,7 @@ export default function DayNotes() {
 
     // Don't allow deletion of the default Learnings note
     if (
-      activeNote.title === "Learnings" &&
-      activeNote.type === NoteType.LEARNING
+      activeNote.title === "Learnings"
     ) {
       return;
     }
@@ -205,9 +199,9 @@ export default function DayNotes() {
             onClick={() => handleSelectNote(note.id)}
             className="h-8 gap-2"
           >
-            {note.title === "Learnings" && note.type === NoteType.LEARNING && (
+            {/* {note.title === "Learnings" && note.type === NoteType.LEARNING && (
               <BookOpen className="h-3 w-3" />
-            )}
+            )} */}
             {note.title || "Untitled"}
           </Button>
         ))}
@@ -241,9 +235,8 @@ export default function DayNotes() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {displayNote.title === "Learnings" && // Use displayNote for read-only title
-                      displayNote.type === NoteType.LEARNING && (
                         <BookOpen className="h-5 w-5 text-blue-500" />
-                      )}
+                      }
                     {displayNote.title || "Untitled Note"}
                   </CardTitle>
                   <CardDescription>
@@ -271,8 +264,7 @@ export default function DayNotes() {
                 )}
                 {/* Don't show delete button for the default Learnings note */}
                 {!(
-                  displayNote.title === "Learnings" && // Use displayNote for check
-                  displayNote.type === NoteType.LEARNING
+                  displayNote.title === "Learnings"
                 ) && (
                     <Button
                       variant="destructive"

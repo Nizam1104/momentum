@@ -5,7 +5,7 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Project, ProjectStatus, Priority } from "./enums";
+import { Project, ProjectStatus, Priority } from "@/types/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,7 +74,6 @@ interface ProjectFormProps {
           Project,
           | "id"
           | "userId"
-          | "progress"
           | "createdAt"
           | "updatedAt"
           | "completedAt"

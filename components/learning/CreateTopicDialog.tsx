@@ -107,8 +107,6 @@ export default function CreateTopicDialog({
       await createTopic({
         ...data,
         userId,
-        progress: 0,
-        actualHours: 0,
       });
 
       form.reset();

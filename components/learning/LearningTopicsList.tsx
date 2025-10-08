@@ -2,12 +2,10 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BookOpen,
-  Clock,
   Target,
   Calendar,
   MoreVertical,
@@ -158,29 +156,13 @@ const TopicCard = ({
           </p>
         )}
 
-        {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Progress</span>
-            <span className="font-medium">{topic.progress}%</span>
-          </div>
-          <Progress value={topic.progress} className="h-2" />
-        </div>
-
+  
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {completedConcepts}/{conceptCount} concepts
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {topic.actualHours?.toFixed(1) || 0}h spent
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Target className="h-4 w-4 text-muted-foreground" />
+          <span className="text-muted-foreground">
+            {completedConcepts}/{conceptCount} concepts
+          </span>
         </div>
 
         {/* Timeline */}

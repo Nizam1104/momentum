@@ -1,7 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
-import { Project, Task as ProjectTask, TaskStatus as ProjectTaskStatus, Priority as ProjectPriority } from "./enums";
+import React from "react";
+import { Project as BaseProject, Task as BaseTask, TaskStatus as BaseTaskStatus, Priority as BasePriority } from "@/types/states";
+
+// Extended Project interface with progress
+interface Project extends BaseProject {
+  progress: number;
+}
+
+// Type mapping between BaseTask and Task interfaces
+const mapToTaskInterface = (baseTask: BaseTask): UniversalTask => ({
+  id: baseTask.id,
+  title: baseTask.title,
+  description: baseTask.description || undefined,
+  status: baseTask.status as UniversalTaskStatus,
+  priority: baseTask.priority as UniversalPriority,
+  dueDate: baseTask.dueDate || undefined,
+  createdAt: baseTask.createdAt,
+  updatedAt: baseTask.updatedAt || undefined,
+  projectId: baseTask.projectId || undefined,
+});
+
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +30,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Edit,
   Trash2,
@@ -20,23 +39,16 @@ import {
 } from "lucide-react";
 import { formatDate, getProjectStatusConfig, getPriorityConfig } from "./utils";
 import { UniversalTaskList } from "@/components/tasks/UniversalTaskList";
-import { Task, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Task as UniversalTask, Priority as UniversalPriority, TaskStatus as UniversalTaskStatus } from "@/components/tasks/UniversalTaskItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TaskForm } from "./TaskForm";
 
 interface ProjectDetailsProps {
   project: Project;
-  tasks: ProjectTask[];
+  tasks: BaseTask[];
   onEditProject: (project: Project) => void;
   onDeleteProject: (projectId: string) => void;
-  onAddTask: (newTask: Omit<ProjectTask, "id" | "createdAt" | "updatedAt">) => void;
-  onUpdateTask: (updatedTask: ProjectTask) => void;
+  onAddTask: (newTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt">) => void;
+  onUpdateTask: (updatedTask: BaseTask) => void;
   onDeleteTask: (taskId: string, projectId: string) => void;
 }
 
@@ -49,82 +61,60 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
   onUpdateTask,
   onDeleteTask,
 }) => {
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<ProjectTask | null>(null);
 
-
-  const handleTaskSubmit = (
-    taskData: Omit<ProjectTask, "id" | "createdAt" | "updatedAt"> | ProjectTask,
-  ) => {
-    if ("id" in taskData) {
-      // It's an existing task
-      onUpdateTask(taskData as ProjectTask);
-    } else {
-      // It's a new task
-      onAddTask({ ...taskData, projectId: project.id });
-    }
-    setIsTaskFormOpen(false);
-    setEditingTask(null);
-  };
-
+  
   // Convert tasks to universal format
-  const universalTasks: Task[] = tasks.map(task => ({
-    id: task.id,
-    title: task.title,
-    description: task.description || undefined,
-    status: task.status as UniversalTaskStatus,
-    priority: task.priority as UniversalPriority,
-    dueDate: task.dueDate || undefined,
-    createdAt: task.createdAt,
-    updatedAt: task.updatedAt,
-    projectId: task.projectId,
-    completedAt: task.completedAt || undefined,
-  }));
+  const universalTasks: UniversalTask[] = tasks.map(task => mapToTaskInterface(task));
 
-  const handleCreateTask = async (newTask: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
-    onAddTask({
+  const handleCreateTask = (newTask: Omit<UniversalTask, "id" | "createdAt" | "updatedAt">) => {
+    const baseTask: Omit<BaseTask, "id" | "createdAt" | "updatedAt"> = {
       title: newTask.title,
-      description: newTask.description,
-      priority: newTask.priority as ProjectPriority,
-      status: newTask.status as ProjectTaskStatus,
-      dueDate: newTask.dueDate,
+      description: newTask.description || null,
+      priority: newTask.priority as BasePriority,
+      status: newTask.status as BaseTaskStatus,
+      dueDate: newTask.dueDate || null,
       projectId: project.id,
-      completedAt: newTask.completedAt,
-    });
+      userId: project.userId,
+      categoryId: null,
+      parentId: null,
+    };
+    onAddTask(baseTask);
   };
 
-  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+  const handleUpdateTask = (taskId: string, updates: Partial<UniversalTask>) => {
     const existingTask = tasks.find(t => t.id === taskId);
     if (!existingTask) return;
 
-    onUpdateTask({
+    const updatedBaseTask: BaseTask = {
       ...existingTask,
       title: updates.title || existingTask.title,
-      description: updates.description || existingTask.description,
-      priority: updates.priority as ProjectPriority || existingTask.priority,
-      status: updates.status as ProjectTaskStatus || existingTask.status,
-      dueDate: updates.dueDate || existingTask.dueDate,
-      completedAt: updates.completedAt || existingTask.completedAt,
-    });
+      description: updates.description !== undefined ? (updates.description || null) : existingTask.description,
+      priority: (updates.priority as BasePriority) || existingTask.priority,
+      status: (updates.status as BaseTaskStatus) || existingTask.status,
+      dueDate: updates.dueDate !== undefined ? (updates.dueDate || null) : existingTask.dueDate,
+      updatedAt: new Date(),
+    };
+    onUpdateTask(updatedBaseTask);
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = (taskId: string) => {
     onDeleteTask(taskId, project.id);
   };
 
-  const handleToggleTask = async (taskId: string, currentStatus: UniversalTaskStatus) => {
+  const handleToggleTask = (taskId: string, currentStatus: UniversalTaskStatus) => {
     const existingTask = tasks.find(t => t.id === taskId);
     if (!existingTask) return;
 
     const newStatus = currentStatus === UniversalTaskStatus.COMPLETED
-      ? ProjectTaskStatus.TODO
-      : ProjectTaskStatus.COMPLETED;
+      ? BaseTaskStatus.TODO
+      : BaseTaskStatus.COMPLETED;
 
-    onUpdateTask({
+    const updatedBaseTask: BaseTask = {
       ...existingTask,
       status: newStatus,
-      completedAt: newStatus === ProjectTaskStatus.COMPLETED ? new Date() : null,
-    });
+      updatedAt: new Date(),
+    };
+    onUpdateTask(updatedBaseTask);
   };
 
   return (
@@ -174,14 +164,7 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
               <span>{formatDate(project.dueDate)}</span>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Progress</span>
-              <span className="font-semibold">{project.progress}%</span>
-            </div>
-            <Progress value={project.progress} className="h-2" />
-          </div>
-        </CardContent>
+          </CardContent>
       </Card>
 
       <UniversalTaskList
@@ -192,30 +175,13 @@ export const ProjectDetails: React.FC<ProjectDetailsProps> = ({
         showFilters={true}
         groupBy="status"
         sortBy="priority"
-        variant="compact"
+        variant="detailed"
         onCreateTask={handleCreateTask}
         onUpdateTask={handleUpdateTask}
         onDeleteTask={handleDeleteTask}
         onToggleTask={handleToggleTask}
         className="mb-6"
       />
-
-      <Dialog open={isTaskFormOpen} onOpenChange={setIsTaskFormOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingTask ? "Edit Task" : "Create New Task"}</DialogTitle>
-          </DialogHeader>
-          <TaskForm
-            initialData={editingTask}
-            projectId={project.id}
-            onSubmit={handleTaskSubmit}
-            onCancel={() => {
-              setIsTaskFormOpen(false);
-              setEditingTask(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </ScrollArea>
   );
 };

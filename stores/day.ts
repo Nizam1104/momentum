@@ -4,7 +4,6 @@ import {
   Day,
   Note,
   Task,
-  NoteType,
   TaskStatus,
   Priority,
   getTodayEntry,
@@ -68,8 +67,8 @@ interface DayState {
   fetchDayNotes: (dayId: string) => Promise<void>;
   createNoteAsync: (
     dayId: string,
-    noteData: { title?: string; content: string; type?: NoteType },
-  ) => Promise<void>;
+    noteData: { title?: string; content: string },
+  ) => Promise<Note | null>;
   updateNoteAsync: (
     noteId: string,
     updates: { title?: string; content?: string },
@@ -240,7 +239,6 @@ export const useDayStore = create<DayState>((set, get) => ({
       const result = await createDayNote(dayId, {
         title: noteData.title || "",
         content: noteData.content,
-        type: noteData.type || NoteType.GENERAL,
         isPinned: false,
         isArchived: false,
       });
@@ -249,13 +247,16 @@ export const useDayStore = create<DayState>((set, get) => ({
         set((state) => ({
           notes: [result.data!, ...state.notes],
         }));
+        return result.data;
       } else {
         set({
           notesError: result.error || "Failed to create note",
         });
+        return null;
       }
     } catch (error) {
       set({ notesError: "Failed to create note" });
+      return null;
     } finally {
       get().setNoteCreating(false);
     }

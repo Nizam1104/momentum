@@ -396,7 +396,6 @@ export const UniversalTaskList: React.FC<TaskListProps> = ({
                     <UniversalTaskItem
                       key={task.id}
                       task={task}
-                      variant={variant}
                       showProject={showProject}
                       showDueDate={showDueDate}
                       showStatus={showStatus}

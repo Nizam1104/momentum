@@ -8,13 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
-/* changes need to be done in next migration
-add customization in notes titles
-add notes type
-*/
-
-
 // Core User Model
 model User {
   id            String    @id @default(cuid())
@@ -31,8 +24,6 @@ model User {
   days             Day[]
   projects         Project[]
   categories       Category[]
-  goals            Goal[]
-  tags             Tag[]
   tasks            Task[]
   notes             Note[]
   learningTopics   LearningTopic[]
@@ -50,13 +41,7 @@ model Day {
   date   DateTime @db.Date
   userId String
 
-  // Daily metrics and ratings
-  energyLevel    Int?     @default(5) // 1-10 scale
-  moodRating     Int?     @default(5) // 1-10 scale
-  productivityRating Int? @default(5) // 1-10 scale
-  sleepHours     Float?
-  sleepQuality   Int?     @default(5) // 1-10 scale
-
+  
   // Daily reflection
   highlights     String?  @db.Text
   challenges     String?  @db.Text
@@ -71,8 +56,6 @@ model Day {
   user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes          Note[]
   tasks          Task[]
-  dailyGoals     DailyGoal[]
-  taskCompletions TaskCompletion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -87,7 +70,6 @@ model Note {
   id      String @id @default(cuid())
   title   String?
   content String @db.Text
-  type    NoteType @default(GENERAL)
 
   // Metadata
   isPinned   Boolean @default(false)
@@ -102,7 +84,6 @@ model Note {
   project    Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   categoryId String?
   category   Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  tags       NoteTag[]
   topicId    String?
   topic      LearningTopic?     @relation(fields: [topicId], references: [id], onDelete: SetNull)
   conceptId  String?
@@ -114,18 +95,9 @@ model Note {
   @@index([dayId])
   @@index([projectId])
   @@index([categoryId])
-  @@index([type])
   @@index([createdAt])
 }
 
-enum NoteType {
-  GENERAL
-  MEETING
-  IDEA
-  LEARNING
-  REFLECTION
-  PLANNING
-}
 
 // Project Management System
 model Project {
@@ -155,8 +127,6 @@ model Project {
 
   tasks       Task[]
   notes       Note[]
-  goals       Goal[]
-  tags        ProjectTag[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -188,10 +158,6 @@ model Task {
   dueDate     DateTime?
   completedAt DateTime?
 
-  // Time estimation
-  estimatedMinutes Int?
-  actualMinutes    Int?
-
   // Relationships
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -204,9 +170,6 @@ model Task {
   parentId    String?
   parent      Task?            @relation("TaskHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
   subtasks    Task[]           @relation("TaskHierarchy")
-
-  completions TaskCompletion[]
-  tags        TaskTag[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime? @updatedAt
@@ -226,112 +189,6 @@ enum TaskStatus {
   CANCELLED
 }
 
-// Daily task completion tracking
-model TaskCompletion {
-  id     String @id @default(cuid())
-  dayId  String
-  day    Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  completedAt DateTime @default(now())
-  notes       String?  @db.Text
-
-  @@unique([dayId, taskId])
-  @@index([dayId])
-  @@index([taskId])
-}
-
-// Enhanced Goal System
-model Goal {
-  id          String     @id @default(cuid())
-  title       String
-  description String?    @db.Text
-  type        GoalType   @default(PERSONAL)
-  status      GoalStatus @default(ACTIVE)
-  priority    Priority   @default(MEDIUM)
-  color       String     @default("#10B981")
-
-  // Timeline
-  startDate   DateTime?
-  targetDate  DateTime?
-  completedAt DateTime?
-
-  // Progress tracking
-  isQuantifiable Boolean @default(false)
-  targetValue    Float?
-  currentValue   Float?  @default(0)
-  unit           String?
-
-  // Relationships
-  userId     String
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId  String?
-  project    Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  categoryId String?
-  category   Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  parentId   String?
-  parent     Goal?        @relation("GoalHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
-  subgoals   Goal[]       @relation("GoalHierarchy")
-
-  dailyGoals DailyGoal[]
-  tags       GoalTag[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@index([userId])
-  @@index([projectId])
-  @@index([categoryId])
-  @@index([type])
-  @@index([status])
-  @@index([targetDate])
-  @@index([parentId])
-}
-
-enum GoalType {
-  PERSONAL
-  PROFESSIONAL
-  HEALTH
-  FINANCIAL
-  LEARNING
-  RELATIONSHIP
-  CREATIVE
-}
-
-enum GoalStatus {
-  ACTIVE
-  PAUSED
-  COMPLETED
-  CANCELLED
-}
-
-// Daily goal tracking
-model DailyGoal {
-  id       String            @id @default(cuid())
-  dayId    String
-  day      Day               @relation(fields: [dayId], references: [id], onDelete: Cascade)
-  goalId   String
-  goal     Goal              @relation(fields: [goalId], references: [id], onDelete: Cascade)
-
-  status   DailyGoalStatus   @default(NOT_STARTED)
-  progress Float             @default(0) // For quantifiable goals
-  notes    String?           @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@unique([dayId, goalId])
-  @@index([dayId])
-  @@index([goalId])
-}
-
-enum DailyGoalStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
-  SKIPPED
-}
 
 // (Removed Habit, HabitLog, HabitType, and TimeEntry models)
 
@@ -349,7 +206,6 @@ model Category {
   projects Project[]
   notes    Note[]
   tasks    Task[]
-  goals    Goal[]
   learningTopics LearningTopic[]
 
   createdAt DateTime @default(now())
@@ -359,73 +215,6 @@ model Category {
   @@index([userId])
 }
 
-// Tagging System
-model Tag {
-  id    String @id @default(cuid())
-  name  String
-  color String @default("#9CA3AF")
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  notes    NoteTag[]
-  projects ProjectTag[]
-  tasks    TaskTag[]
-  goals    GoalTag[]
-  learningTopics  LearningTopicTag[]
-  learningConcepts LearningConceptTag[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
-
-  @@unique([userId, name])
-  @@index([userId])
-}
-
-// Tag relationship tables
-model NoteTag {
-  noteId String
-  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  tagId  String
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([noteId, tagId])
-  @@index([noteId])
-  @@index([tagId])
-}
-
-model ProjectTag {
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tagId     String
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([projectId, tagId])
-  @@index([projectId])
-  @@index([tagId])
-}
-
-model TaskTag {
-  taskId String
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  tagId  String
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([taskId, tagId])
-  @@index([taskId])
-  @@index([tagId])
-}
-
-model GoalTag {
-  goalId String
-  goal   Goal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  tagId  String
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([goalId, tagId])
-  @@index([goalId])
-  @@index([tagId])
-}
 
 
 enum Priority {
@@ -444,11 +233,7 @@ model LearningTopic {
   priority    Priority           @default(MEDIUM)
   status      LearningTopicStatus @default(ACTIVE)
 
-  // Progress tracking
-  estimatedHours Float?
-  actualHours    Float?          @default(0)
-  progress       Int             @default(0) // 0-100
-
+  
   // Timeline
   startDate   DateTime?
   targetDate  DateTime?
@@ -461,7 +246,6 @@ model LearningTopic {
   category    Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   concepts    LearningConcept[]
-  tags        LearningTopicTag[]
   notes       Note[]
 
   createdAt DateTime @default(now())
@@ -504,7 +288,6 @@ model LearningConcept {
   topicId      String
   topic        LearningTopic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
-  tags         LearningConceptTag[]
   notes        Note[]
 
   createdAt DateTime @default(now())
@@ -524,28 +307,6 @@ enum LearningConceptStatus {
   MASTERED
 }
 
-// Learning Tag relationship tables
-model LearningTopicTag {
-  topicId String
-  topic   LearningTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  tagId   String
-  tag     Tag           @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([topicId, tagId])
-  @@index([topicId])
-  @@index([tagId])
-}
-
-model LearningConceptTag {
-  conceptId String
-  concept   LearningConcept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
-  tagId     String
-  tag       Tag             @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([conceptId, tagId])
-  @@index([conceptId])
-  @@index([tagId])
-}
 
 // don't touch the following , as it is schema of auth js
 

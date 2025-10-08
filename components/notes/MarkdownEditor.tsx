@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { commands } from "@uiw/react-md-editor";
+import remarkBreaks from "remark-breaks";
 
 const MDEditor = dynamic(
   () => import("@uiw/react-md-editor"),
@@ -35,7 +36,7 @@ export default function MarkdownEditor({
   onDoubleClick,
 }: MarkdownEditorProps) {
   const { theme } = useTheme();
-
+  
   return (
     <div className={className} onDoubleClick={onDoubleClick}>
       <MDEditor
@@ -45,20 +46,34 @@ export default function MarkdownEditor({
         preview={editable ? preview : "preview"}
         hideToolbar={!editable || hideToolbar}
         data-color-mode={theme === "dark" ? "dark" : "light"}
-        visiableDragbar={false}
         onKeyDown={onKeyDown}
         previewOptions={{
           style: {
             backgroundColor: "transparent",
             padding: 0,
           },
+          remarkPlugins: [[remarkBreaks]],
+          components: {
+            code: ({ inline, className, children, ...props }: {
+              inline?: boolean;
+              className?: string;
+              children?: React.ReactNode;
+            }) => {
+              return (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          },
+          skipHtml: true,
+          disallowedElements: ['script', 'iframe'],
         }}
         commands={[
           commands.bold,
           commands.italic,
           commands.strikethrough,
           commands.hr,
-          commands.title,
           commands.unorderedListCommand,
           commands.orderedListCommand,
           commands.checkedListCommand,

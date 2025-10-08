@@ -28,38 +28,6 @@ export enum Priority {
   URGENT = "URGENT",
 }
 
-export enum NoteType {
-  GENERAL = "GENERAL",
-  MEETING = "MEETING",
-  IDEA = "IDEA",
-  LEARNING = "LEARNING",
-  REFLECTION = "REFLECTION",
-  PLANNING = "PLANNING",
-}
-
-export enum GoalType {
-  PERSONAL = "PERSONAL",
-  PROFESSIONAL = "PROFESSIONAL",
-  HEALTH = "HEALTH",
-  FINANCIAL = "FINANCIAL",
-  LEARNING = "LEARNING",
-  RELATIONSHIP = "RELATIONSHIP",
-  CREATIVE = "CREATIVE",
-}
-
-export enum GoalStatus {
-  ACTIVE = "ACTIVE",
-  PAUSED = "PAUSED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
-export enum DailyGoalStatus {
-  NOT_STARTED = "NOT_STARTED",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
-  SKIPPED = "SKIPPED",
-}
 
 // Base interfaces for entities
 export interface BaseEntity {
@@ -99,30 +67,9 @@ export interface Task extends BaseEntity {
   priority: Priority;
   dueDate?: Date;
   completedAt?: Date;
-  estimatedMinutes?: number;
-  actualMinutes?: number;
-  projectId?: string;
-  dayId?: string;
-  categoryId?: string;
-  parentId?: string;
-}
-
-export interface Goal extends BaseEntity {
-  title: string;
-  description?: string;
-  type: GoalType;
-  status: GoalStatus;
-  priority: Priority;
-  color: string;
-  startDate?: Date;
-  targetDate?: Date;
-  completedAt?: Date;
-  isQuantifiable: boolean;
-  targetValue?: number;
-  currentValue: number;
-  unit?: string;
   userId: string;
   projectId?: string;
+  dayId?: string;
   categoryId?: string;
   parentId?: string;
 }
@@ -130,7 +77,6 @@ export interface Goal extends BaseEntity {
 export interface Note extends BaseEntity {
   title?: string;
   content: string;
-  type: NoteType;
   isPinned: boolean;
   isArchived: boolean;
   dayId?: string;
@@ -147,11 +93,6 @@ export interface Day extends BaseEntity {
   challenges?: string;
   lessons?: string;
   tomorrowFocus?: string;
-  energyLevel?: number;
-  moodRating?: number;
-  productivityRating?: number;
-  sleepHours?: number;
-  sleepQuality?: number;
   isCompleted: boolean;
 }
 
@@ -161,25 +102,4 @@ export interface Category extends BaseEntity {
   color: string;
   icon?: string;
   userId: string;
-}
-
-export interface Tag extends BaseEntity {
-  name: string;
-  color: string;
-  userId: string;
-}
-
-export interface DailyGoal extends BaseEntity {
-  dayId: string;
-  goalId: string;
-  status: DailyGoalStatus;
-  progress: number;
-  notes?: string;
-}
-
-export interface TaskCompletion extends BaseEntity {
-  dayId: string;
-  taskId: string;
-  completedAt: Date;
-  notes?: string;
 }

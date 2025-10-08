@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -109,7 +109,7 @@ const statusConfig = {
 // Component interfaces
 export interface TaskItemProps {
   task: Task;
-  variant?: "compact" | "detailed" | "minimal";
+  variant?: "detailed" | "minimal";
   showProject?: boolean;
   showDueDate?: boolean;
   showStatus?: boolean;
@@ -119,7 +119,6 @@ export interface TaskItemProps {
   onToggle?: (taskId: string, currentStatus: TaskStatus) => void;
   onUpdate?: (taskId: string, updates: Partial<Task>) => void;
   onDelete?: (taskId: string) => void;
-  onEdit?: (task: Task) => void;
   className?: string;
 }
 
@@ -135,7 +134,6 @@ export const UniversalTaskItem: React.FC<TaskItemProps> = ({
   onToggle,
   onUpdate,
   onDelete,
-  onEdit,
   className,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -234,82 +232,8 @@ export const UniversalTaskItem: React.FC<TaskItemProps> = ({
     );
   }
 
-  // Compact variant
-  if (variant === "compact") {
-    return (
-      <div className={cn(
-        "flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:border-border hover:shadow-md transition-all duration-200 bg-card hover:bg-card/95 group",
-        isCompleted && "opacity-70",
-        className
-      )}>
-        <Checkbox
-          checked={isCompleted}
-          onCheckedChange={handleToggle}
-          className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-        />
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex items-center gap-2">
-            <h4 className={cn(
-              "font-medium text-sm leading-tight truncate transition-colors",
-              isCompleted && "line-through text-muted-foreground"
-            )}>
-              {task.title}
-            </h4>
-            <Badge
-              variant="secondary"
-              className={cn(
-                "text-xs px-2 py-0.5 rounded-full font-medium shrink-0",
-                priorityConfig[task.priority].color
-              )}
-            >
-              <PriorityIcon className="h-3 w-3 mr-1" />
-              {priorityConfig[task.priority].label}
-            </Badge>
-          </div>
-          {task.description && (
-            <p className={cn(
-              "text-xs text-muted-foreground leading-relaxed line-clamp-2",
-              isCompleted && "line-through"
-            )}>
-              {task.description}
-            </p>
-          )}
-          {(showDueDate && task.dueDate) && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <CalendarDays className="h-3 w-3" />
-              <span className="font-medium">{formatDate(task.dueDate)}</span>
-            </div>
-          )}
-        </div>
-        {(editable || deletable) && (
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {editable && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit?.(task)}
-                className="h-7 w-7 p-0 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
-              >
-                <Edit className="h-3.5 w-3.5" />
-              </Button>
-            )}
-            {deletable && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete?.(task.id)}
-                className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive rounded-md transition-colors"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Detailed variant (with inline editing)
+  
+  // Detailed variant with inline editing
   if (isEditing) {
     return (
       <div className={cn(

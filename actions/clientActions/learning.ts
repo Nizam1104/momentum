@@ -5,7 +5,6 @@ import {
   LearningTopicStatus,
   LearningConceptStatus,
   Note,
-  NoteType,
 } from "@/types/states";
 
 import { nanoid } from "nanoid";
@@ -268,7 +267,6 @@ export async function getLearningStats(userId: string): Promise<{
   completedTopics: number;
   totalConcepts: number;
   completedConcepts: number;
-  totalHoursSpent: number;
   averageProgress: number;
 }> {
   const { topics, concepts } = await fetchUserLearningData(userId);
@@ -288,13 +286,10 @@ export async function getLearningStats(userId: string): Promise<{
       c.status === LearningConceptStatus.MASTERED,
   ).length;
 
-  const totalHoursSpent = concepts.reduce(
-    (sum, concept) => sum + (concept.timeSpent || 0),
-    0,
-  );
+    // Calculate average progress based on concept completion instead
   const averageProgress =
-    totalTopics > 0
-      ? topics.reduce((sum, topic) => sum + topic.progress, 0) / totalTopics
+    totalConcepts > 0
+      ? (completedConcepts / totalConcepts) * 100
       : 0;
 
   return {
@@ -303,7 +298,6 @@ export async function getLearningStats(userId: string): Promise<{
     completedTopics,
     totalConcepts,
     completedConcepts,
-    totalHoursSpent,
     averageProgress,
   };
 }
@@ -315,7 +309,6 @@ export async function createConceptNote(
   noteData: {
     title?: string;
     content: string;
-    type?: NoteType;
   },
 ): Promise<Note> {
   const supabase = await getSupabaseClient();
@@ -328,7 +321,6 @@ export async function createConceptNote(
       conceptId,
       title: noteData.title,
       content: noteData.content,
-      type: noteData.type || NoteType.LEARNING,
       isPinned: false,
       isArchived: false,
     })
@@ -376,7 +368,6 @@ export async function updateConceptNote(
   updates: Partial<{
     title?: string;
     content: string;
-    type: NoteType;
     isPinned: boolean;
   }>,
 ): Promise<Note> {

@@ -4,7 +4,6 @@
 import React from 'react';
 import { Project, ProjectStatus } from './enums';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVertical, Edit, Trash2, Flag, CalendarDays, CheckCircle, Hourglass } from 'lucide-react';
@@ -74,11 +73,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onEd
                     <CalendarDays className="h-3 w-3" />
                     <span>Due: {formatDate(project.dueDate)}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Progress value={project.progress} className="h-2 flex-1" />
-                    <span className="text-sm font-medium">{project.progress}%</span>
-                </div>
-            </CardContent>
+              </CardContent>
         </Card>
     );
 };

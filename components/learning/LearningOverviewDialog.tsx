@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Target, Clock, TrendingUp, CheckCircle, PlayCircle } from "lucide-react";
+import { BookOpen, Target, TrendingUp, CheckCircle, PlayCircle } from "lucide-react";
 
 interface LearningStatsData {
   totalTopics: number;
@@ -18,7 +18,6 @@ interface LearningStatsData {
   completedTopics: number;
   totalConcepts: number;
   completedConcepts: number;
-  totalHoursSpent: number;
   averageProgress: number;
 }
 
@@ -138,32 +137,7 @@ export default function LearningOverviewDialog({
                 </CardContent>
               </Card>
 
-              {/* Time Investment */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Time Invested
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold mb-2">
-                    {stats.totalHoursSpent.toFixed(1)}h
-                  </div>
-                  <div className="text-sm text-muted-foreground mb-3">
-                    Total learning time
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-xs text-muted-foreground">
-                      {stats.totalTopics > 0
-                        ? `~${(stats.totalHoursSpent / stats.totalTopics).toFixed(1)}h per topic average`
-                        : "No time logged yet"
-                      }
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                          </div>
 
             {/* Detailed Insights */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,19 +191,6 @@ export default function LearningOverviewDialog({
                         }
                       </div>
                     </div>
-
-                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-                      <div>
-                        <div className="font-medium">Hours per Concept</div>
-                        <div className="text-xs text-muted-foreground">Time efficiency</div>
-                      </div>
-                      <div className="text-2xl font-bold">
-                        {stats.totalConcepts > 0
-                          ? (stats.totalHoursSpent / stats.totalConcepts).toFixed(1)
-                          : "0"
-                        }h
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -242,7 +203,7 @@ export default function LearningOverviewDialog({
               </CardHeader>
               <CardContent>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="space-y-2">
                       <h4 className="font-medium text-blue-600">Focus Areas</h4>
                       <p className="text-muted-foreground">
@@ -263,18 +224,7 @@ export default function LearningOverviewDialog({
                         }
                       </p>
                     </div>
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-purple-600">Time Investment</h4>
-                      <p className="text-muted-foreground">
-                        {stats.totalHoursSpent > 20
-                          ? "Significant time invested in learning. Great dedication!"
-                          : stats.totalHoursSpent > 5
-                          ? "Building good learning habits. Keep it up!"
-                          : "Start tracking time to optimize your learning sessions."
-                        }
-                      </p>
                     </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
