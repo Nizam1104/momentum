@@ -7,6 +7,8 @@ ALTER TABLE "Task" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Category" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LearningTopic" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LearningConcept" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Road" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Milestone" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Account" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Session" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "VerificationToken" ENABLE ROW LEVEL SECURITY;
@@ -268,6 +270,97 @@ AS PERMISSIVE
 FOR DELETE
 TO authenticated
 USING ("userId" = (auth.jwt() ->> 'sub'));
+
+-- ============================================================================
+-- ROAD TABLE POLICIES
+-- ============================================================================
+
+CREATE POLICY "Users can view own roads"
+ON "Road"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can insert own roads"
+ON "Road"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can update own roads"
+ON "Road"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'))
+WITH CHECK ("userId" = (auth.jwt() ->> 'sub'));
+
+CREATE POLICY "Users can delete own roads"
+ON "Road"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING ("userId" = (auth.jwt() ->> 'sub'));
+
+-- ============================================================================
+-- MILESTONE TABLE POLICIES
+-- ============================================================================
+
+CREATE POLICY "Users can view own milestones"
+ON "Milestone"
+AS PERMISSIVE
+FOR SELECT
+TO authenticated
+USING (
+  "roadId" IN (
+    SELECT id FROM "Road"
+    WHERE "userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can insert own milestones"
+ON "Milestone"
+AS PERMISSIVE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  "roadId" IN (
+    SELECT id FROM "Road"
+    WHERE "userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can update own milestones"
+ON "Milestone"
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (
+  "roadId" IN (
+    SELECT id FROM "Road"
+    WHERE "userId" = (auth.jwt() ->> 'sub')
+  )
+)
+WITH CHECK (
+  "roadId" IN (
+    SELECT id FROM "Road"
+    WHERE "userId" = (auth.jwt() ->> 'sub')
+  )
+);
+
+CREATE POLICY "Users can delete own milestones"
+ON "Milestone"
+AS PERMISSIVE
+FOR DELETE
+TO authenticated
+USING (
+  "roadId" IN (
+    SELECT id FROM "Road"
+    WHERE "userId" = (auth.jwt() ->> 'sub')
+  )
+);
 
 -- ============================================================================
 -- ACCOUNT TABLE POLICIES (Auth.js)

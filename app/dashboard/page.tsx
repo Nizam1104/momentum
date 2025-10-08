@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDayStore } from "@/stores/day";
 import { useProjectStore } from "@/stores/project";
 import { useLearningStore } from "@/stores/learning";
+import { useRoadStore } from "@/stores/road";
 
 import { Suspense } from "react";
 import DashboardTabs from "@/components/DashboardSearchParams";
@@ -33,6 +34,8 @@ export default function DashboardPage() {
   const { topicsError, fetchTopics } =
     useLearningStore();
 
+  const { error: roadError, fetchRoads } = useRoadStore();
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -49,6 +52,9 @@ export default function DashboardPage() {
 
       // Fetch learning topics
       fetchTopics(session.user.id);
+
+      // Fetch roads
+      fetchRoads(session.user.id);
     }
   }, [
     session?.user?.id,
@@ -56,6 +62,7 @@ export default function DashboardPage() {
     fetchTodayEntry,
     fetchProjects,
     fetchTopics,
+    fetchRoads,
   ]);
 
   // Loading states
@@ -92,7 +99,7 @@ export default function DashboardPage() {
     );
   }
 
-  const hasError = dayError || projectError || topicsError;
+  const hasError = dayError || projectError || topicsError || roadError;
 
   return (
     <div className="container mx-auto px-2 space-y-3">
@@ -100,7 +107,7 @@ export default function DashboardPage() {
       {hasError && (
         <Alert variant="destructive">
           <AlertDescription>
-            {dayError || projectError || topicsError}
+            {dayError || projectError || topicsError || roadError}
           </AlertDescription>
         </Alert>
       )}

@@ -24,10 +24,11 @@ export default function TabsNavigation() {
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="today">Today</TabsTrigger>
         <TabsTrigger value="projects">Projects</TabsTrigger>
         <TabsTrigger value="learning">Learning</TabsTrigger>
+        <TabsTrigger value="roads">Roads</TabsTrigger>
       </TabsList>
     </Tabs>
   );

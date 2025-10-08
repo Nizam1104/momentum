@@ -5,6 +5,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import DayComponent from "@/components/days/Day";
 import ProjectManagement from "@/components/project-management/ProjectManagement";
 import LearningManagement from "@/components/learning/LearningManagement";
+import RoadManagement from "@/components/roads/RoadManagement";
 import { useDayStore } from "@/stores/day";
 
 export default function DashboardTabs() {
@@ -34,6 +35,12 @@ export default function DashboardTabs() {
       <TabsContent value="learning" className="space-y-4">
         <div className="h-[calc(100vh-100px)]">
           <LearningManagement />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="roads" className="space-y-4">
+        <div className="h-[calc(100vh-100px)]">
+          <RoadManagement />
         </div>
       </TabsContent>
     </Tabs>
