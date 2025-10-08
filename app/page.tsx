@@ -12,19 +12,22 @@ export default function Home() {
   };
   
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-end" style={{ backgroundColor: 'white' }}>
-      <TextAnimations onAnimationComplete={handleAnimationComplete} />
+    <div className="relative min-h-screen bg-black flex flex-col items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
+        <TextAnimations
+          onAnimationComplete={handleAnimationComplete}
+        />
+      </div>
       {animationComplete && (
-        <div className="flex flex-col items-center space-y-6 animate-fade-in absolute bottom-24">
-          <button 
-            className="bg-black text-gray-800 font-semibold px-6 py-2 rounded-lg transition-colors duration-200 shadow-lg border border-gray-300 flex items-center space-x-2"
-            style={{ marginBottom: '100px' }}
+        <div className="flex flex-col items-center space-y-6 animate-fade-in mb-16">
+          <button
+            className="bg-gray-900 text-white font-medium px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 border border-gray-700 flex items-center space-x-3"
             onClick={() => {
               signIn('google', { callbackUrl: '/dashboard' })
             }}
           >
-            <FcGoogle />
-            <span>Login with Google</span>
+            <FcGoogle className="text-xl" />
+            <span>Continue with Google</span>
           </button>
         </div>
       )}

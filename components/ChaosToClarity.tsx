@@ -17,10 +17,12 @@ interface AnimatedTextProps {
   animationDuration?: number;
   startDelay?: number;
   onAnimationComplete?: () => void;
+  showShadow?: boolean;
 }
 
 interface ChaosToClarityProps {
   onAnimationComplete?: () => void;
+  className?: string;
 }
 
 const AnimatedText: React.FC<AnimatedTextProps> = ({
@@ -30,9 +32,11 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
   animationDuration = 1000,
   startDelay = 500,
   onAnimationComplete,
+  showShadow = false,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [letterData, setLetterData] = useState<LetterData[]>([]);
+  const [animationComplete, setAnimationComplete] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
 
@@ -149,7 +153,11 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({
           animationDuration={animationDuration}
           delay={index * 0}
           getBezierPoint={getBezierPoint}
-          onAnimationComplete={index === letterData.length - 1 ? onAnimationComplete : undefined}
+          showShadow={showShadow && animationComplete}
+          onAnimationComplete={index === letterData.length - 1 ? () => {
+            setAnimationComplete(true);
+            onAnimationComplete?.();
+          } : undefined}
         />
       ))}
     </div>
@@ -165,6 +173,7 @@ interface AnimatedLetterProps {
   delay: number;
   getBezierPoint: (t: number, startX: number, startY: number, endX: number, endY: number) => { x: number; y: number };
   onAnimationComplete?: () => void;
+  showShadow?: boolean;
 }
 
 const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
@@ -176,6 +185,7 @@ const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
   delay,
   getBezierPoint,
   onAnimationComplete,
+  showShadow = false,
 }) => {
   const [currentPosition, setCurrentPosition] = useState({ x: data.startX, y: data.startY });
   const animationRef = useRef<number>(0);
@@ -238,6 +248,8 @@ const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
         fontFamily: 'Arial, sans-serif',
         userSelect: 'none',
         pointerEvents: 'none',
+        textShadow: showShadow ? '4px 4px 8px rgba(100, 100, 100, 0.6)' : 'none',
+        transition: showShadow ? 'text-shadow 0.5s ease-in' : 'none',
       }}
     >
       {data.char === ' ' ? '\u00A0' : data.char}
@@ -245,24 +257,31 @@ const AnimatedLetter: React.FC<AnimatedLetterProps> = ({
   );
 };
 
-const ChaosToClarity: React.FC<ChaosToClarityProps> = ({ onAnimationComplete }) => {
+const ChaosToClarity: React.FC<ChaosToClarityProps> = ({ onAnimationComplete, className }) => {
+
+  const handleAnimationComplete = () => {
+    setTimeout(() => {
+    }, 500);
+    onAnimationComplete?.();
+  };
+
   return (
-    <div style={{
-      // minHeight: '100vh',
-      backgroundColor: '#f8f8f8',
-      display: 'flex',
+    <div className={className} style={{
+      backgroundColor: '#1a1a1a',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
       position: 'relative',
+      width: '100vw',
     }}>
       <AnimatedText
         text="MOMENTUM"
         fontSize="8rem"
-        color="#111000"
+        color="#ebf4f5"
         animationDuration={2000}
         startDelay={1}
-        onAnimationComplete={onAnimationComplete}
+        showShadow={true}
+        onAnimationComplete={handleAnimationComplete}
       />
     </div>
   );
