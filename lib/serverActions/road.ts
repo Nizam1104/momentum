@@ -213,7 +213,8 @@ export async function updateMilestone(
     if (data.isCompleted && !existingMilestone.isCompleted) {
       data.completedAt = new Date();
     } else if (!data.isCompleted) {
-      data.completedAt = null;
+      const date = new Date()
+      data.completedAt = date
     }
 
     const milestone = await prisma.milestone.update({
