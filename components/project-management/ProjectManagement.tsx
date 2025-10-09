@@ -28,7 +28,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import {
-  ProjectStatus,
   TaskStatus,
 } from "@/types/states";
 import type {

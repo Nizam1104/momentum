@@ -36,7 +36,7 @@ const statusColors = {
   ARCHIVED: "bg-gray-100 text-gray-800",
 } as const;
 
-export default function RoadDetail({ road, onClose }: RoadDetailProps) {
+export default function RoadDetail({ road }: RoadDetailProps) {
   const [isCreateMilestoneOpen, setIsCreateMilestoneOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [formData, setFormData] = useState({

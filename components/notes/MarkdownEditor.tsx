@@ -54,8 +54,7 @@ export default function MarkdownEditor({
           },
           remarkPlugins: [[remarkBreaks]],
           components: {
-            code: ({ inline, className, children, ...props }: {
-              inline?: boolean;
+            code: ({ className, children, ...props }: {
               className?: string;
               children?: React.ReactNode;
             }) => {
