@@ -353,3 +353,70 @@ export async function reorderMilestones(
     throw new Error("Failed to reorder milestones");
   }
 }
+
+export async function createMilestonesFromJSON(
+  roadId: string,
+  milestonesData: Array<{ title: string; description?: string }>
+): Promise<Milestone[]> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // Verify road ownership
+    const road = await prisma.road.findUnique({
+      where: { id: roadId },
+    });
+
+    if (!road || road.userId !== session.user.id) {
+      throw new Error("Road not found or unauthorized");
+    }
+
+    // Validate input data
+    if (!Array.isArray(milestonesData) || milestonesData.length === 0) {
+      throw new Error("Milestones data must be a non-empty array");
+    }
+
+    // Validate each milestone object
+    for (const milestone of milestonesData) {
+      if (!milestone.title || typeof milestone.title !== 'string' || milestone.title.trim() === '') {
+        throw new Error("Each milestone must have a non-empty title");
+      }
+      if (milestone.description && typeof milestone.description !== 'string') {
+        throw new Error("Description must be a string if provided");
+      }
+    }
+
+    // Get the current max order to place new milestones at the end
+    const maxOrder = await prisma.milestone.findFirst({
+      where: { roadId },
+      orderBy: { order: "desc" },
+    });
+
+    let startOrder = maxOrder ? maxOrder.order + 1 : 0;
+
+    // Create milestones with proper order
+    const milestones = await Promise.all(
+      milestonesData.map((milestoneData, index) =>
+        prisma.milestone.create({
+          data: {
+            title: milestoneData.title.trim(),
+            description: milestoneData.description?.trim() || null,
+            roadId,
+            order: startOrder + index,
+          },
+        })
+      )
+    );
+
+    // Update road progress
+    await updateRoadProgress(roadId);
+
+    revalidatePath("/dashboard");
+    return milestones;
+  } catch (error) {
+    console.error("Error creating milestones from JSON:", error);
+    throw new Error(error instanceof Error ? error.message : "Failed to create milestones");
+  }
+}

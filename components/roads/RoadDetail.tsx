@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { useRoadStore } from "@/stores/road";
 import { createMilestone, updateMilestone, deleteMilestone } from "@/lib/serverActions/road";
 import type { Road, Milestone } from "@prisma/client";
+import BulkMilestones from "./BulkMilestones";
 
 interface RoadDetailProps {
   road: Road & { milestones: Milestone[] };
@@ -38,6 +39,7 @@ const statusColors = {
 
 export default function RoadDetail({ road }: RoadDetailProps) {
   const [isCreateMilestoneOpen, setIsCreateMilestoneOpen] = useState(false);
+  const [isBulkCreateOpen, setIsBulkCreateOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -104,6 +106,14 @@ export default function RoadDetail({ road }: RoadDetailProps) {
     });
   };
 
+  const handleBulkMilestonesSuccess = (milestones: any[]) => {
+    // Add milestones to the store
+    milestones.forEach(milestone => {
+      addMilestone(road.id, milestone);
+    });
+    setIsBulkCreateOpen(false);
+  };
+
   return (
     <Card className="">
       <CardHeader>
@@ -158,24 +168,43 @@ export default function RoadDetail({ road }: RoadDetailProps) {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Milestones</h3>
-              <Button
-                size="sm"
-                onClick={() => setIsCreateMilestoneOpen(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Milestone
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsBulkCreateOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bulk Create
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setIsCreateMilestoneOpen(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Milestone
+                </Button>
+              </div>
             </div>
             {road.milestones.length === 0 ? (
               <div className="text-center py-6 border-2 border-dashed border-gray-200 rounded-lg">
                 <p className="text-gray-500 mb-4">No milestones yet. Add your first milestone to get started.</p>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsCreateMilestoneOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Milestone
-                </Button>
+                <div className="flex justify-center space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsBulkCreateOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Bulk Create Milestones
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsCreateMilestoneOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Single Milestone
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -236,6 +265,20 @@ export default function RoadDetail({ road }: RoadDetailProps) {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Create Milestones Dialog */}
+      <Dialog open={isBulkCreateOpen} onOpenChange={setIsBulkCreateOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogTitle>
+          Create Milestones
+        </DialogTitle>
+          <BulkMilestones
+            roadId={road.id}
+            onSuccess={handleBulkMilestonesSuccess}
+            onCancel={() => setIsBulkCreateOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </Card>
