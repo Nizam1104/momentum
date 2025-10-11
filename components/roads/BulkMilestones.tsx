@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, X, CheckCircle, AlertCircle } from "lucide-react";
+import type { Milestone } from "@prisma/client";
 
 interface MilestoneData {
   title: string;
@@ -15,7 +16,7 @@ interface MilestoneData {
 
 interface BulkMilestonesProps {
   roadId: string;
-  onSuccess?: (milestones: MilestoneData[]) => void;
+  onSuccess?: (milestones: Milestone[]) => void;
   onCancel?: () => void;
 }
 
@@ -69,7 +70,7 @@ export default function BulkMilestones({ roadId, onSuccess, onCancel }: BulkMile
       }
 
       return { data: milestones, error: null };
-    } catch (error) {
+    } catch {
       return { data: null, error: "Invalid JSON format" };
     }
   };
@@ -163,7 +164,7 @@ export default function BulkMilestones({ roadId, onSuccess, onCancel }: BulkMile
         <div>
           <Label htmlFor="json-input">JSON Input</Label>
           <div className="text-sm text-gray-600 mb-2">
-            Enter an array of milestone objects. Only "title" is required.
+            Enter an array of milestone objects. Only &quot;title&quot; is required.
           </div>
           <Textarea
             id="json-input"

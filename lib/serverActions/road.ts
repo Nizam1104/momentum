@@ -394,7 +394,7 @@ export async function createMilestonesFromJSON(
       orderBy: { order: "desc" },
     });
 
-    let startOrder = maxOrder ? maxOrder.order + 1 : 0;
+    const startOrder = maxOrder ? maxOrder.order + 1 : 0;
 
     // Create milestones with proper order
     const milestones = await Promise.all(

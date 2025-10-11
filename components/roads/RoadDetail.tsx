@@ -106,7 +106,7 @@ export default function RoadDetail({ road }: RoadDetailProps) {
     });
   };
 
-  const handleBulkMilestonesSuccess = (milestones: any[]) => {
+  const handleBulkMilestonesSuccess = (milestones: Milestone[]) => {
     // Add milestones to the store
     milestones.forEach(milestone => {
       addMilestone(road.id, milestone);
